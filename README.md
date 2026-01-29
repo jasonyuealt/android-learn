@@ -48,8 +48,9 @@ yarn build
 | 主题切换 | `ThemeToggle.tsx` | 支持深色/浅色模式切换，状态持久化 |
 | 用户认证 | `LoginPage.tsx` / `RegisterPage.tsx` / `authBloc.ts` | 独立登录注册页面，本地存储用户数据 |
 | **AI 小测验** | `QuizSection.tsx` / `aiService.ts` | **多题型（单选/多选/判断/填空）、错题重测、动态题量、知识点全覆盖** |
-| **Kotlin 在线测试** | `KotlinPlayground.tsx` | **全局浮动按钮，点击打开代码编辑器，弹窗内直接运行代码** |
+| **Kotlin 在线测试** | `KotlinPlayground.tsx` / `Navbar.tsx` | **课程页面导航栏显示"在线测验"按钮，点击打开代码编辑器** |
 | **AI 文本分析** | `AiTextAssistant.tsx` | **选中文本后显示 AI 分析按钮，支持解释代码含义和多轮追问** |
+| **AI 页面助手** | `AiPageAssistant.tsx` | **右下角浮动按钮，基于当前页面上下文的智能对话助手** |
 | 首页 | `HomePage.tsx` | 学习路径总览、当前进度、实战项目推荐 |
 | 学习列表 | `LearnPage.tsx` | 分阶段展示所有课程，显示完成状态 |
 | 课程详情 | `LessonPage.tsx` | 课程内容渲染，支持代码高亮、提示框、表格、AI 测验入口 |
@@ -130,12 +131,18 @@ yarn build
 android-learn/
 ├── src/
 │   ├── components/          # 通用组件
+│   │   ├── AiPageAssistant.tsx       # AI 页面助手（右下角按钮）
+│   │   ├── AiTextAssistant.tsx       # AI 文本分析（选中触发）
 │   │   ├── BackgroundDecoration.tsx  # 背景装饰
 │   │   ├── BottomNav.tsx             # 底部导航
+│   │   ├── CodeBlock.tsx             # 代码块显示
 │   │   ├── Icon.tsx                  # Lucide 图标映射组件
+│   │   ├── KotlinPlayground.tsx      # Kotlin 在线测试
+│   │   ├── Logo.tsx                  # Logo 组件
 │   │   ├── Navbar.tsx                # 顶部导航栏
 │   │   ├── PathCard.tsx              # 学习路径卡片
 │   │   ├── ProjectCard.tsx           # 项目卡片
+│   │   ├── QuizSection.tsx           # AI 小测验
 │   │   └── ThemeToggle.tsx           # 主题切换按钮
 │   ├── pages/               # 页面组件
 │   │   ├── HomePage.tsx              # 首页
@@ -149,9 +156,12 @@ android-learn/
 │   │   ├── courses.ts                # 课程内容数据
 │   │   └── projects.ts               # 项目数据
 │   ├── blocs/               # 状态管理
+│   │   ├── authBloc.ts               # 用户认证管理
 │   │   ├── themeBloc.ts              # 主题状态管理
 │   │   ├── learningBloc.ts           # 学习数据管理
 │   │   └── progressBloc.ts           # 进度追踪管理
+│   ├── services/            # 服务层
+│   │   └── aiService.ts              # AI API 调用服务
 │   ├── types/               # 类型定义
 │   │   └── index.ts                  # 类型/类定义
 │   ├── App.tsx              # 主应用组件
@@ -183,6 +193,18 @@ android-learn/
 ---
 
 ## 📝 更新日志
+
+### v0.9.0 (2026-01-29)
+- ✅ **AI 页面助手（全新功能）**
+  - 右下角浮动按钮（Logo 图标），点击打开智能对话界面
+  - 基于当前页面上下文的 AI 助手（课程、项目、列表页等）
+  - 绿色主题，贴合项目风格
+  - 支持多轮对话，智能理解页面内容
+  - 默认提示："当前页面想了解什么？"
+- ✅ **功能优化**
+  - Kotlin 在线测试移至课程页面导航栏"在线测验"按钮
+  - AI 文本分析和 AI 页面助手共存，分工明确
+  - 安装 UI UX Pro Max 和 OpenSkills 技能系统
 
 ### v0.8.0 (2026-01-29)
 - ✅ **Kotlin 在线测试功能**

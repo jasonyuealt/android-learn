@@ -336,16 +336,14 @@ export function KotlinEditor({
 
 /**
  * Kotlin 在线测试组件 - 右下角浮动按钮
- * 注意：此组件仅显示图标，功能已移至导航栏的"在线测验"按钮
+ * 点击打开 AI 页面助手
  */
-export function KotlinPlayground() {
+export function KotlinPlayground({ onOpenAI }: { onOpenAI?: () => void }) {
   return (
     <>
-      {/* 浮动按钮 - 仅显示，无功能 */}
+      {/* 浮动按钮 - 打开 AI 助手 */}
       <button
-        onClick={() => {
-          // 功能已移至导航栏，此处不执行任何操作
-        }}
+        onClick={onOpenAI}
         className={`
           fixed bottom-24 right-4 md:bottom-8 md:right-6 z-40
           w-12 h-12 md:w-14 md:h-14 rounded-2xl
@@ -356,7 +354,7 @@ export function KotlinPlayground() {
           active:scale-95
           bg-gradient-to-br from-accent-green to-emerald-600
         `}
-        title="在线测试（功能已移至导航栏）"
+        title="AI 助手"
       >
         <Logo size={22} className="text-dark-bg-primary" />
       </button>
