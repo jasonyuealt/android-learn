@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen, Brain } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen } from 'lucide-react'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useProgressBloc } from '../blocs/progressBloc'
 import { getLessonById, getAdjacentLessons, courseData } from '../data/courses'
-import { QuizModal } from '../components/QuizModal'
+import { QuizSection } from '../components/QuizSection'
 import type { LessonContent } from '../data/courses'
 
 /**
@@ -23,9 +23,6 @@ export function LessonPage() {
   const phase = courseData.find(p => p.id === phaseId)
   const { prev, next } = phaseId && lessonId ? getAdjacentLessons(phaseId, lessonId) : { prev: null, next: null }
   const isCompleted = phaseId && lessonId ? isLessonCompleted(phaseId, lessonId) : false
-
-  // AI 小测验状态
-  const [isQuizOpen, setIsQuizOpen] = useState(false)
 
   // 设置当前学习的课程（使用 useEffect 避免渲染时修改状态导致无限循环）
   useEffect(() => {
@@ -233,12 +230,24 @@ export function LessonPage() {
         {lesson.contents.map((content, index) => renderContent(content, index))}
       </article>
 
+      {/* AI 小测验区域 - 直接内嵌在页面中 */}
+      <QuizSection
+        lessonTitle={lesson.title}
+        lessonContent={lesson.contents
+          .filter(c => c.type === 'text')
+          .map(c => c.content)
+          .join('\n')
+          .slice(0, 1000)}
+        onComplete={(score) => {
+          console.log(`测验完成，得分: ${score}`)
+        }}
+      />
+
       {/* 底部操作 */}
-      <footer className={`pt-8 border-t ${isDark ? 'border-zinc-800/50' : 'border-light-border-subtle'}`}>
-        {/* 完成按钮和测验按钮 */}
-        <div className="mb-8 space-y-4">
-          {/* 未完成时显示完成按钮 */}
-          {!isCompleted && (
+      <footer className={`pt-8 mt-8 border-t ${isDark ? 'border-zinc-800/50' : 'border-light-border-subtle'}`}>
+        {/* 完成按钮 */}
+        {!isCompleted && (
+          <div className="mb-8">
             <button
               onClick={handleComplete}
               className="w-full py-4 rounded-xl text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50 flex items-center justify-center gap-2"
@@ -246,28 +255,8 @@ export function LessonPage() {
               <Check size={20} />
               完成学习，继续下一课
             </button>
-          )}
-
-          {/* AI 小测验按钮 - 学完后可以随时测验 */}
-          <button
-            onClick={() => setIsQuizOpen(true)}
-            className={`
-              w-full py-4 rounded-xl text-base font-semibold transition-all duration-200 cursor-pointer
-              flex items-center justify-center gap-2
-              focus:outline-none focus:ring-2 focus:ring-accent-blue/50
-              ${isDark 
-                ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(77,159,255,0.2)] text-accent-blue hover:shadow-[0_0_0_1px_rgba(77,159,255,0.4)] hover:bg-[#1a1a2e]' 
-                : 'bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 border border-accent-blue/30'
-              }
-            `}
-          >
-            <Brain size={20} />
-            AI 小测验
-            <span className={`text-xs px-2 py-0.5 rounded-full ml-1 ${isDark ? 'bg-accent-blue/20' : 'bg-accent-blue/20'}`}>
-              实时生成
-            </span>
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* 上一课/下一课导航 */}
         <div className="flex justify-between gap-4">
@@ -329,21 +318,6 @@ export function LessonPage() {
           )}
         </div>
       </footer>
-
-      {/* AI 小测验模态框 */}
-      <QuizModal
-        isOpen={isQuizOpen}
-        onClose={() => setIsQuizOpen(false)}
-        lessonTitle={lesson.title}
-        lessonContent={lesson.contents
-          .filter(c => c.type === 'text')
-          .map(c => c.content)
-          .join('\n')
-          .slice(0, 1000)}  // 限制内容长度
-        onComplete={(score) => {
-          console.log(`测验完成，得分: ${score}`)
-        }}
-      />
     </div>
   )
 }

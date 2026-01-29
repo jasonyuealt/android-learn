@@ -1,26 +1,24 @@
-import { useState, useEffect } from 'react'
-import { X, CheckCircle, XCircle, Loader2, Brain, RefreshCw, ChevronRight, Award, AlertTriangle } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle, XCircle, Loader2, Brain, RefreshCw, ChevronRight, Award, AlertTriangle, Sparkles } from 'lucide-react'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { generateQuiz, calculateQuizResult, QuizQuestion, QuizResult } from '../services/aiService'
 
-interface QuizModalProps {
-  isOpen: boolean
-  onClose: () => void
+interface QuizSectionProps {
   lessonTitle: string
   lessonContent: string
   onComplete?: (score: number) => void
 }
 
 /**
- * AI 小测验模态框组件
- * 根据课程内容实时生成测验题目
+ * AI 小测验内嵌组件
+ * 直接在课程页面内显示，无需弹窗
  */
-export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onComplete }: QuizModalProps) {
+export function QuizSection({ lessonTitle, lessonContent, onComplete }: QuizSectionProps) {
   const theme = useThemeBloc((state) => state.theme)
   const isDark = theme === 'dark'
 
   // 状态管理
-  const [status, setStatus] = useState<'loading' | 'quiz' | 'result' | 'error'>('loading')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'quiz' | 'result' | 'error'>('idle')
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<number[]>([])
@@ -29,15 +27,8 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
   const [result, setResult] = useState<QuizResult | null>(null)
   const [error, setError] = useState<string>('')
 
-  // 当模态框打开时生成测验
-  useEffect(() => {
-    if (isOpen) {
-      loadQuiz()
-    }
-  }, [isOpen, lessonTitle])
-
-  // 加载测验
-  const loadQuiz = async () => {
+  // 开始测验
+  const startQuiz = async () => {
     setStatus('loading')
     setError('')
     setCurrentIndex(0)
@@ -84,86 +75,107 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
     }
   }
 
-  // 关闭模态框
-  const handleClose = () => {
-    onClose()
-    // 延迟重置状态，避免闪烁
-    setTimeout(() => {
-      setStatus('loading')
-      setQuestions([])
-      setCurrentIndex(0)
-      setUserAnswers([])
-      setSelectedAnswer(null)
-      setShowExplanation(false)
-      setResult(null)
-    }, 300)
+  // 重置测验
+  const resetQuiz = () => {
+    setStatus('idle')
+    setQuestions([])
+    setCurrentIndex(0)
+    setUserAnswers([])
+    setSelectedAnswer(null)
+    setShowExplanation(false)
+    setResult(null)
   }
-
-  if (!isOpen) return null
 
   const currentQuestion = questions[currentIndex]
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* 背景遮罩 */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleClose}
-      />
+    <section className={`
+      mt-12 rounded-2xl overflow-hidden
+      ${isDark 
+        ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.05)]' 
+        : 'bg-white border border-light-border-DEFAULT shadow-sm'
+      }
+    `}>
+      {/* 头部 */}
+      <div className={`
+        px-6 py-4 flex items-center justify-between
+        ${isDark ? 'bg-[#1a1a1e] border-b border-zinc-800/50' : 'bg-gray-50 border-b border-gray-100'}
+      `}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-accent-blue/15 flex items-center justify-center">
+            <Brain className="w-5 h-5 text-accent-blue" />
+          </div>
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              AI 小测验
+              <span className={`
+                text-xs px-2 py-0.5 rounded-full
+                ${isDark ? 'bg-accent-blue/15 text-accent-blue' : 'bg-accent-blue/10 text-accent-blue'}
+              `}>
+                实时生成
+              </span>
+            </h3>
+            <p className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
+              检验本课学习成果
+            </p>
+          </div>
+        </div>
+        {status === 'quiz' && (
+          <div className={`text-sm font-medium ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
+            {currentIndex + 1} / {questions.length}
+          </div>
+        )}
+      </div>
 
-      {/* 模态框内容 */}
-      <div
-        className={`
-          relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-8
-          animate-scale-in
-          ${isDark 
-            ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_25px_50px_rgba(0,0,0,0.5)]' 
-            : 'bg-white shadow-2xl'
-          }
-        `}
-      >
-        {/* 关闭按钮 */}
-        <button
-          onClick={handleClose}
-          className={`
-            absolute top-4 right-4 p-2 rounded-full transition-colors duration-200 cursor-pointer
-            ${isDark 
-              ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' 
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-            }
-          `}
-          aria-label="关闭"
-        >
-          <X size={20} />
-        </button>
+      {/* 内容区域 */}
+      <div className="p-6">
+        {/* 初始状态 - 显示开始按钮 */}
+        {status === 'idle' && (
+          <div className="text-center py-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-blue/10 mb-4">
+              <Sparkles className="w-8 h-8 text-accent-blue" />
+            </div>
+            <h4 className="text-lg font-medium mb-2">准备好检验学习成果了吗？</h4>
+            <p className={`text-sm mb-6 max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
+              AI 将根据本课「{lessonTitle}」的内容为你生成 3 道选择题
+            </p>
+            <button
+              onClick={startQuiz}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
+            >
+              <Brain size={18} />
+              开始测验
+            </button>
+          </div>
+        )}
 
         {/* 加载状态 */}
         {status === 'loading' && (
-          <div className="py-16 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-green/15 mb-6">
-              <Brain className="w-8 h-8 text-accent-green animate-pulse" />
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-blue/15 mb-6">
+              <Brain className="w-8 h-8 text-accent-blue animate-pulse" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">AI 正在生成测验...</h3>
+            <h4 className="text-lg font-medium mb-2">AI 正在生成题目...</h4>
             <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
-              根据「{lessonTitle}」内容智能出题
+              根据课程内容智能出题，请稍候
             </p>
-            <Loader2 className="w-6 h-6 mx-auto mt-6 animate-spin text-accent-green" />
+            <Loader2 className="w-6 h-6 mx-auto mt-6 animate-spin text-accent-blue" />
           </div>
         )}
 
         {/* 错误状态 */}
         {status === 'error' && (
-          <div className="py-16 text-center">
+          <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/15 mb-6">
               <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">生成失败</h3>
+            <h4 className="text-lg font-medium mb-2">生成失败</h4>
             <p className={`text-sm mb-6 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
               {error}
             </p>
             <button
-              onClick={loadQuiz}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-green text-black font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
+              onClick={startQuiz}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
             >
               <RefreshCw size={18} />
               重试
@@ -174,90 +186,68 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
         {/* 测验题目 */}
         {status === 'quiz' && currentQuestion && (
           <div>
-            {/* 头部 */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-accent-green/15 flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-accent-green" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">AI 小测验</h3>
-                  <p className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
-                    {lessonTitle}
-                  </p>
-                </div>
-              </div>
-              {/* 进度指示器 */}
-              <div className={`text-sm font-medium ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
-                {currentIndex + 1} / {questions.length}
-              </div>
-            </div>
-
             {/* 进度条 */}
-            <div className={`h-1 rounded-full mb-8 ${isDark ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+            <div className={`h-1.5 rounded-full mb-8 ${isDark ? 'bg-zinc-800' : 'bg-gray-100'}`}>
               <div 
-                className="h-full rounded-full bg-gradient-to-r from-accent-green to-accent-blue transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-accent-blue to-accent-green transition-all duration-300"
                 style={{ width: `${((currentIndex + (showExplanation ? 1 : 0)) / questions.length) * 100}%` }}
               />
             </div>
 
             {/* 题目 */}
-            <div className="mb-6">
-              <h4 className="text-lg font-medium mb-6">{currentQuestion.question}</h4>
+            <h4 className="text-lg font-medium mb-6">{currentQuestion.question}</h4>
 
-              {/* 选项 */}
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => {
-                  const isSelected = selectedAnswer === index
-                  const isCorrect = index === currentQuestion.correctIndex
-                  const showCorrect = showExplanation && isCorrect
-                  const showWrong = showExplanation && isSelected && !isCorrect
+            {/* 选项 */}
+            <div className="space-y-3 mb-6">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = selectedAnswer === index
+                const isCorrect = index === currentQuestion.correctIndex
+                const showCorrect = showExplanation && isCorrect
+                const showWrong = showExplanation && isSelected && !isCorrect
 
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleSelectAnswer(index)}
-                      disabled={showExplanation}
-                      className={`
-                        w-full text-left p-4 rounded-xl transition-all duration-200 cursor-pointer
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSelectAnswer(index)}
+                    disabled={showExplanation}
+                    className={`
+                      w-full text-left p-4 rounded-xl transition-all duration-200 cursor-pointer
+                      ${showCorrect 
+                        ? 'bg-accent-green/15 shadow-[inset_0_0_0_2px_rgba(61,214,140,0.5)]' 
+                        : showWrong 
+                          ? 'bg-red-500/15 shadow-[inset_0_0_0_2px_rgba(239,68,68,0.5)]' 
+                          : isSelected 
+                            ? isDark 
+                              ? 'bg-accent-blue/15 shadow-[inset_0_0_0_2px_rgba(77,159,255,0.5)]' 
+                              : 'bg-accent-blue/10 ring-2 ring-accent-blue/50'
+                            : isDark 
+                              ? 'bg-zinc-800/50 hover:bg-zinc-800' 
+                              : 'bg-gray-50 hover:bg-gray-100'
+                      }
+                      ${showExplanation ? 'cursor-default' : ''}
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`
+                        w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0
                         ${showCorrect 
-                          ? 'bg-accent-green/15 shadow-[inset_0_0_0_2px_rgba(61,214,140,0.5)]' 
+                          ? 'bg-accent-green text-black' 
                           : showWrong 
-                            ? 'bg-red-500/15 shadow-[inset_0_0_0_2px_rgba(239,68,68,0.5)]' 
+                            ? 'bg-red-500 text-white' 
                             : isSelected 
-                              ? isDark 
-                                ? 'bg-accent-blue/15 shadow-[inset_0_0_0_2px_rgba(77,159,255,0.5)]' 
-                                : 'bg-accent-blue/10 ring-2 ring-accent-blue/50'
+                              ? 'bg-accent-blue text-white' 
                               : isDark 
-                                ? 'bg-zinc-800/50 hover:bg-zinc-800' 
-                                : 'bg-gray-50 hover:bg-gray-100'
+                                ? 'bg-zinc-700 text-zinc-300' 
+                                : 'bg-gray-200 text-gray-600'
                         }
-                        ${showExplanation ? 'cursor-default' : ''}
-                      `}
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* 选项标签 */}
-                        <span className={`
-                          w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0
-                          ${showCorrect 
-                            ? 'bg-accent-green text-black' 
-                            : showWrong 
-                              ? 'bg-red-500 text-white' 
-                              : isSelected 
-                                ? 'bg-accent-blue text-white' 
-                                : isDark 
-                                  ? 'bg-zinc-700 text-zinc-300' 
-                                  : 'bg-gray-200 text-gray-600'
-                          }
-                        `}>
-                          {showCorrect ? <CheckCircle size={16} /> : showWrong ? <XCircle size={16} /> : String.fromCharCode(65 + index)}
-                        </span>
-                        <span className="flex-1">{option}</span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+                      `}>
+                        {showCorrect ? <CheckCircle size={16} /> : showWrong ? <XCircle size={16} /> : String.fromCharCode(65 + index)}
+                      </span>
+                      <span className="flex-1">{option}</span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
 
             {/* 答案解析 */}
@@ -304,7 +294,7 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
                   className={`
                     inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200
                     ${selectedAnswer !== null 
-                      ? 'bg-accent-green text-black cursor-pointer hover:shadow-lg hover:shadow-accent-green/20' 
+                      ? 'bg-accent-blue text-white cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20' 
                       : isDark 
                         ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -316,7 +306,7 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
               ) : (
                 <button
                   onClick={handleNextQuestion}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-green text-black font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
                 >
                   {currentIndex < questions.length - 1 ? (
                     <>
@@ -334,7 +324,7 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
 
         {/* 测验结果 */}
         {status === 'result' && result && (
-          <div className="py-8 text-center">
+          <div className="text-center py-8">
             {/* 成绩图标 */}
             <div className={`
               inline-flex items-center justify-center w-20 h-20 rounded-full mb-6
@@ -385,7 +375,7 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
             {/* 操作按钮 */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={loadQuiz}
+                onClick={startQuiz}
                 className={`
                   inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 cursor-pointer
                   ${isDark 
@@ -398,15 +388,16 @@ export function QuizModal({ isOpen, onClose, lessonTitle, lessonContent, onCompl
                 再测一次
               </button>
               <button
-                onClick={handleClose}
+                onClick={resetQuiz}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-green text-black font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
               >
+                <CheckCircle size={18} />
                 完成
               </button>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }
