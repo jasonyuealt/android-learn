@@ -72,18 +72,18 @@ export function RegisterPage() {
       <div className={`
         hidden lg:flex lg:w-1/2 relative overflow-hidden slide-in-left
         ${isDark 
-          ? 'bg-gradient-to-br from-[#0c0c0f] via-accent-blue/5 to-accent-purple/5' 
-          : 'bg-gradient-to-br from-accent-blue/10 via-accent-purple/5 to-light-bg-secondary'
+          ? 'bg-gradient-to-br from-[#0c0c0f] via-accent-green/5 to-accent-blue/5' 
+          : 'bg-gradient-to-br from-accent-green/10 via-accent-blue/5 to-light-bg-secondary'
         }
       `}>
         {/* 装饰圆圈 */}
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-accent-blue/20 blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-accent-purple/20 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-accent-green/20 blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-accent-blue/20 blur-3xl" />
         
         {/* 内容 */}
         <div className="relative z-10 flex flex-col justify-center px-16">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-blue to-blue-600 flex items-center justify-center shadow-lg shadow-accent-blue/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/30">
               <Bot size={26} className="text-white" />
             </div>
             <span className="font-display font-bold text-2xl">Android Learn</span>
@@ -152,7 +152,7 @@ export function RegisterPage() {
 
           {/* 移动端 Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-6 sm:mb-8">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-blue to-blue-600 flex items-center justify-center shadow-lg shadow-accent-blue/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
               <Bot size={22} className="text-white" />
             </div>
             <span className="font-display font-bold text-xl">Android Learn</span>
