@@ -67,7 +67,7 @@ export function RegisterPage() {
   const displayError = localError || error
 
   return (
-    <div className="min-h-screen flex auth-page-transition">
+    <div className="min-h-screen flex auth-page-transition overflow-x-hidden">
       {/* 左侧：装饰区域 */}
       <div className={`
         hidden lg:flex lg:w-1/2 relative overflow-hidden slide-in-left
@@ -131,7 +131,7 @@ export function RegisterPage() {
 
       {/* 右侧：注册表单 */}
       <div className={`
-        w-full lg:w-1/2 flex items-center justify-center px-6 py-12 slide-in-right
+        w-full lg:w-1/2 flex justify-center px-4 sm:px-6 py-8 sm:py-12 slide-in-right
         ${isDark ? 'bg-[#09090b]' : 'bg-light-bg-primary'}
       `}>
         <div className="w-full max-w-md">
@@ -139,7 +139,7 @@ export function RegisterPage() {
           <Link
             to="/"
             className={`
-              inline-flex items-center gap-2 mb-8 text-sm transition-colors duration-200
+              inline-flex items-center gap-2 mb-6 sm:mb-8 text-sm transition-colors duration-200
               ${isDark 
                 ? 'text-dark-text-secondary hover:text-dark-text-primary' 
                 : 'text-light-text-secondary hover:text-light-text-primary'
@@ -151,7 +151,7 @@ export function RegisterPage() {
           </Link>
 
           {/* 移动端 Logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
+          <div className="lg:hidden flex items-center gap-3 mb-6 sm:mb-8">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-blue to-blue-600 flex items-center justify-center shadow-lg shadow-accent-blue/20">
               <Bot size={22} className="text-white" />
             </div>
@@ -159,15 +159,15 @@ export function RegisterPage() {
           </div>
 
           {/* 标题 */}
-          <div className="mb-8">
-            <h2 className="font-display text-3xl font-bold mb-2">创建账户</h2>
-            <p className={isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}>
+          <div className="mb-6 sm:mb-8">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold mb-2">创建账户</h2>
+            <p className={`text-sm sm:text-base ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
               填写信息开始你的学习之旅
             </p>
           </div>
 
           {/* 表单 */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {/* 用户名 */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
@@ -187,7 +187,7 @@ export function RegisterPage() {
                   minLength={2}
                   maxLength={20}
                   className={`
-                    w-full pl-12 pr-4 py-3.5 rounded-full text-sm transition-all duration-200
+                    w-full pl-12 pr-4 py-3 sm:py-3.5 rounded-full text-base sm:text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -215,7 +215,7 @@ export function RegisterPage() {
                   placeholder="输入邮箱地址"
                   required
                   className={`
-                    w-full pl-12 pr-4 py-3.5 rounded-full text-sm transition-all duration-200
+                    w-full pl-12 pr-4 py-3 sm:py-3.5 rounded-full text-base sm:text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -244,7 +244,7 @@ export function RegisterPage() {
                   required
                   minLength={6}
                   className={`
-                    w-full pl-12 pr-12 py-3.5 rounded-full text-sm transition-all duration-200
+                    w-full pl-12 pr-12 py-3 sm:py-3.5 rounded-full text-base sm:text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -303,7 +303,7 @@ export function RegisterPage() {
                   required
                   minLength={6}
                   className={`
-                    w-full pl-12 pr-4 py-3.5 rounded-full text-sm transition-all duration-200
+                    w-full pl-12 pr-4 py-3 sm:py-3.5 rounded-full text-base sm:text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -330,7 +330,7 @@ export function RegisterPage() {
               type="submit"
               disabled={isLoading || (confirmPassword !== '' && password !== confirmPassword)}
               className={`
-                w-full py-4 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer
+                w-full py-3.5 sm:py-4 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer
                 flex items-center justify-center gap-2
                 ${isLoading || (confirmPassword !== '' && password !== confirmPassword)
                   ? 'bg-accent-green/50 cursor-not-allowed' 
@@ -351,9 +351,9 @@ export function RegisterPage() {
           </form>
 
           {/* 分隔线 */}
-          <div className="flex items-center gap-4 my-8">
+          <div className="flex items-center gap-4 my-6 sm:my-8">
             <div className={`flex-1 h-px ${isDark ? 'bg-zinc-800' : 'bg-light-border-DEFAULT'}`} />
-            <span className={`text-sm ${isDark ? 'text-zinc-500' : 'text-light-text-muted'}`}>
+            <span className={`text-xs sm:text-sm ${isDark ? 'text-zinc-500' : 'text-light-text-muted'}`}>
               已有账户？
             </span>
             <div className={`flex-1 h-px ${isDark ? 'bg-zinc-800' : 'bg-light-border-DEFAULT'}`} />
@@ -363,7 +363,7 @@ export function RegisterPage() {
           <Link
             to="/login"
             className={`
-              block w-full py-4 rounded-full text-base font-semibold text-center transition-all duration-200
+              block w-full py-3.5 sm:py-4 rounded-full text-sm sm:text-base font-semibold text-center transition-all duration-200
               ${isDark 
                 ? 'bg-[#141417] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-[#1c1c21]' 
                 : 'bg-light-bg-card border border-light-border-DEFAULT text-light-text-primary hover:bg-light-bg-hover'
