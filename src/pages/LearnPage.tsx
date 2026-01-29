@@ -15,7 +15,7 @@ export function LearnPage() {
   const isDark = theme === 'dark'
 
   return (
-    <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-7xl mx-auto animate-fade-in-up">
+    <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-7xl mx-auto animate-fade-in-up">
       {/* 页面头部 */}
       <header className="mb-12">
         <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-3">学习路径</h1>
@@ -47,7 +47,7 @@ export function LearnPage() {
             <div key={phase.id}>
               {/* 阶段标题 */}
               <div className="flex items-center gap-4 mb-6">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-accent-${phase.colorType}/15`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-accent-${phase.colorType}/15`}>
                   <Icon name={phase.iconName} size={24} className={`text-accent-${phase.colorType}`} />
                 </div>
                 <div className="flex-1">
@@ -76,7 +76,7 @@ export function LearnPage() {
                   <div
                     key={module.id}
                     className={`
-                      rounded-2xl overflow-hidden
+                      rounded-3xl overflow-hidden
                       ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)]' : 'bg-light-bg-card border border-light-border-DEFAULT shadow-sm'}
                     `}
                   >

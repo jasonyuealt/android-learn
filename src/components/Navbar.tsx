@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bot, LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
+import { Logo } from './Logo'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useAuthBloc } from '../blocs/authBloc'
 
@@ -54,7 +55,9 @@ export function Navbar() {
   return (
     <nav
       className={`
-        fixed top-0 left-0 right-0 z-50 px-6 md:px-12 lg:px-16 py-5
+        fixed top-0 left-0 right-0 z-50 
+        px-4 md:px-12 lg:px-16 
+        py-3 md:py-5
         flex items-center justify-between
         backdrop-blur-xl transition-colors duration-200
         ${isDark 
@@ -64,11 +67,12 @@ export function Navbar() {
       `}
     >
       {/* Logo */}
-      <Link to="/" className="flex items-center gap-3 cursor-pointer">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
-          <Bot size={22} className="text-dark-bg-primary" />
+      <Link to="/" className="flex items-center gap-2 md:gap-3 cursor-pointer">
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
+          <Logo size={20} className="text-dark-bg-primary md:hidden" />
+          <Logo size={22} className="text-dark-bg-primary hidden md:block" />
         </div>
-        <span className="font-display font-bold text-xl tracking-tight">
+        <span className="font-display font-bold text-lg md:text-xl tracking-tight hidden sm:block">
           Android Learn
         </span>
       </Link>
@@ -80,7 +84,7 @@ export function Navbar() {
             key={link.path}
             to={link.path}
             className={`
-              px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer
+              px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer
               focus:outline-none focus:ring-2 focus:ring-accent-green/50
               ${isActive(link.path)
                 ? isDark
@@ -98,7 +102,7 @@ export function Navbar() {
       </div>
 
       {/* 右侧操作区 */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         <ThemeToggle />
         
         {currentUser ? (
@@ -107,7 +111,7 @@ export function Navbar() {
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer
+                flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-xl transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'hover:bg-dark-bg-card' 
                   : 'hover:bg-light-bg-card'
@@ -115,13 +119,13 @@ export function Navbar() {
               `}
             >
               {/* 头像 */}
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.avatar)} flex items-center justify-center text-sm font-bold text-white`}>
+              <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.avatar)} flex items-center justify-center text-xs md:text-sm font-bold text-white`}>
                 {currentUser.username.charAt(0).toUpperCase()}
               </div>
-              <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
+              <span className="hidden md:block text-sm font-medium max-w-[100px] truncate">
                 {currentUser.username}
               </span>
-              <ChevronDown size={16} className={`transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`hidden sm:block transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* 下拉菜单 */}
@@ -134,7 +138,7 @@ export function Navbar() {
                 />
                 <div
                   className={`
-                    absolute right-0 top-full mt-2 w-48 rounded-xl py-2 z-50
+                    absolute right-0 top-full mt-2 w-48 rounded-3xl py-2 z-50
                     ${isDark 
                       ? 'bg-[#141417] shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.05)]' 
                       : 'bg-light-bg-card border border-light-border-DEFAULT shadow-xl'
@@ -183,7 +187,7 @@ export function Navbar() {
           <Link
             to="/login"
             className={`
-              hidden sm:block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+              hidden sm:block px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200
               focus:outline-none focus:ring-2 focus:ring-accent-green/50
               ${isDark
                 ? 'text-dark-text-secondary hover:text-dark-text-primary hover:bg-dark-bg-card'
@@ -197,7 +201,7 @@ export function Navbar() {
         
         <Link
           to="/learn"
-          className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+          className="hidden sm:block px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
         >
           开始学习
         </Link>

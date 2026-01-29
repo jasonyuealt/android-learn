@@ -74,7 +74,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-5xl mx-auto animate-fade-in-up">
+    <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-5xl mx-auto animate-fade-in-up">
       {/* 个人信息卡片 */}
       <div
         className={`
@@ -163,7 +163,7 @@ export function ProfilePage() {
       {!currentUser && (
         <div
           className={`
-            rounded-2xl p-6 mb-12
+            rounded-3xl p-6 mb-12
             ${isDark 
               ? 'bg-gradient-to-r from-accent-green/10 to-accent-blue/10 border border-accent-green/20' 
               : 'bg-gradient-to-r from-accent-green/5 to-accent-blue/5 border border-accent-green/30'
@@ -177,7 +177,7 @@ export function ProfilePage() {
           <div className="flex gap-3">
             <Link
               to="/login"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent-green text-dark-bg-primary hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-accent-green text-dark-bg-primary hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
             >
               <LogIn size={16} />
               登录
@@ -185,7 +185,7 @@ export function ProfilePage() {
             <Link
               to="/register"
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
                 ${isDark 
                   ? 'bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white' 
                   : 'bg-light-bg-card border border-light-border-DEFAULT hover:bg-light-bg-hover'
@@ -204,7 +204,7 @@ export function ProfilePage() {
         <h2 className="font-display text-xl font-semibold mb-6">学习进度</h2>
         <div
           className={`
-            p-6 rounded-2xl
+            p-6 rounded-3xl
             ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-card border border-light-border-DEFAULT shadow-sm'}
           `}
         >
@@ -244,7 +244,7 @@ export function ProfilePage() {
               <div
                 key={achievement.id}
                 className={`
-                  rounded-2xl p-5 text-center transition-all duration-200
+                  rounded-3xl p-5 text-center transition-all duration-200
                   ${isDark 
                     ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' 
                     : 'bg-light-bg-card border border-light-border-DEFAULT shadow-sm'
@@ -287,7 +287,7 @@ export function ProfilePage() {
       <section>
         <div
           className={`
-            p-6 rounded-2xl space-y-6
+            p-6 rounded-3xl space-y-6
             ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-card border border-light-border-DEFAULT shadow-sm'}
           `}
         >
@@ -300,7 +300,7 @@ export function ProfilePage() {
             <button
               onClick={handleReset}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer
+                flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' 
                   : 'bg-red-50 text-red-600 hover:bg-red-100'
@@ -322,7 +322,7 @@ export function ProfilePage() {
               <button
                 onClick={() => logout()}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer
+                  flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-200 cursor-pointer
                   ${isDark 
                     ? 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-white' 
                     : 'bg-light-bg-secondary text-light-text-secondary hover:bg-light-bg-hover'

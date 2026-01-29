@@ -56,7 +56,7 @@ export function LoginPage() {
         {/* 内容 */}
         <div className="relative z-10 flex flex-col justify-center px-16">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/30">
               <Bot size={26} className="text-white" />
             </div>
             <span className="font-display font-bold text-2xl">Android Learn</span>
@@ -117,7 +117,7 @@ export function LoginPage() {
 
           {/* 移动端 Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
               <Bot size={22} className="text-white" />
             </div>
             <span className="font-display font-bold text-xl">Android Learn</span>
@@ -150,7 +150,7 @@ export function LoginPage() {
                   placeholder="输入邮箱或用户名"
                   required
                   className={`
-                    w-full pl-12 pr-4 py-3.5 rounded-xl text-sm transition-all duration-200
+                    w-full pl-12 pr-4 py-3.5 rounded-full text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -179,7 +179,7 @@ export function LoginPage() {
                   required
                   minLength={6}
                   className={`
-                    w-full pl-12 pr-12 py-3.5 rounded-xl text-sm transition-all duration-200
+                    w-full pl-12 pr-12 py-3.5 rounded-full text-sm transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-accent-green/30
                     ${isDark 
                       ? 'bg-[#141417] text-white placeholder:text-zinc-500 border-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:shadow-[inset_0_0_0_1px_rgba(61,214,140,0.4)]' 
@@ -203,7 +203,7 @@ export function LoginPage() {
 
             {/* 错误提示 */}
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+              <div className="p-4 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
                 {error}
               </div>
             )}
@@ -213,7 +213,7 @@ export function LoginPage() {
               type="submit"
               disabled={isLoading}
               className={`
-                w-full py-4 rounded-xl text-base font-semibold transition-all duration-200 cursor-pointer
+                w-full py-4 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer
                 flex items-center justify-center gap-2
                 ${isLoading 
                   ? 'bg-accent-green/50 cursor-not-allowed' 
@@ -246,7 +246,7 @@ export function LoginPage() {
           <Link
             to="/register"
             className={`
-              block w-full py-4 rounded-xl text-base font-semibold text-center transition-all duration-200
+              block w-full py-4 rounded-full text-base font-semibold text-center transition-all duration-200
               ${isDark 
                 ? 'bg-[#141417] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] hover:bg-[#1c1c21]' 
                 : 'bg-light-bg-card border border-light-border-DEFAULT text-light-text-primary hover:bg-light-bg-hover'

@@ -32,7 +32,7 @@ export function HomePage() {
   const recommendedPhaseId = currentLesson?.phaseId || firstUncompletedLesson?.phaseId || 'phase-1'
 
   return (
-    <div className="pt-24 pb-32">
+    <div className="pt-20 md:pt-28 pb-32">
       {/* Hero 区域 */}
       <section className="px-6 md:px-12 lg:px-16 py-16 max-w-7xl mx-auto animate-fade-in-up">
         {/* 徽章 */}
@@ -65,14 +65,14 @@ export function HomePage() {
         <div className="flex flex-wrap gap-4">
           <Link
             to="/learn"
-            className="px-8 py-4 rounded-xl text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+            className="px-8 py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
           >
             开始学习之旅
           </Link>
           <Link
             to="/learn"
             className={`
-              px-8 py-4 rounded-xl text-base font-semibold transition-all duration-200 cursor-pointer
+              px-8 py-4 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer
               focus:outline-none focus:ring-2 focus:ring-accent-green/50
               ${isDark
                 ? 'bg-transparent shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] text-white hover:bg-zinc-800/50'
@@ -141,7 +141,7 @@ export function HomePage() {
                 key={phase.id}
                 to="/learn"
                 className={`
-                  relative rounded-2xl p-6 cursor-pointer transition-all duration-200
+                  relative rounded-3xl p-6 cursor-pointer transition-all duration-200
                   ${isDark 
                     ? 'bg-[#141417] hover:bg-[#1c1c21] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.4)]' 
                     : 'bg-light-bg-card hover:bg-light-bg-hover shadow-sm hover:shadow-lg'
@@ -153,7 +153,7 @@ export function HomePage() {
               >
 
                 {/* 图标 */}
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-accent-${phase.colorType}/15`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-accent-${phase.colorType}/15`}>
                   <Icon name={phase.iconName} size={24} className={`text-accent-${phase.colorType}`} />
                 </div>
 
@@ -226,7 +226,7 @@ export function HomePage() {
               </div>
               <button
                 onClick={() => navigate(`/learn/${recommendedPhaseId}/${recommendedLesson.id}`)}
-                className="px-6 py-3 rounded-xl text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+                className="px-6 py-3 rounded-full text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
               >
                 {currentLessonData ? '继续学习' : '开始学习'}
               </button>
@@ -235,7 +235,7 @@ export function HomePage() {
             {/* 代码预览 */}
             <div
               className={`
-                rounded-2xl p-6 font-mono text-sm leading-loose overflow-hidden
+                rounded-3xl p-6 font-mono text-sm leading-loose overflow-hidden
                 ${isDark ? 'bg-dark-bg-secondary' : 'bg-light-bg-secondary'}
               `}
             >
@@ -270,76 +270,59 @@ export function HomePage() {
           </Link>
         </div>
 
-        {/* 项目卡片网格 - 移除逐个卡片动画 (UX 指南第7条) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 项目卡片网格 - 与学习路径卡片风格统一 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {projectsData.slice(0, 4).map((project) => (
             <Link
               key={project.id}
               to={`/projects/${project.id}`}
               className={`
-                rounded-2xl overflow-hidden cursor-pointer transition-all duration-200
+                relative rounded-3xl p-6 cursor-pointer transition-all duration-200
                 ${isDark 
-                  ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.4)]' 
-                  : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm hover:shadow-xl'
+                  ? 'bg-[#141417] hover:bg-[#1c1c21] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.4)]' 
+                  : 'bg-light-bg-card hover:bg-light-bg-hover shadow-sm hover:shadow-lg'
                 }
-                hover:-translate-y-1.5
+                hover:-translate-y-1
                 group
                 focus:outline-none focus:ring-2 focus:ring-accent-green/50
               `}
             >
-              {/* 预览区域 */}
-              <div
-                className={`
-                  h-40 flex items-center justify-center relative overflow-hidden
-                  ${isDark ? 'bg-[#0f0f12]' : 'bg-light-bg-secondary'}
-                `}
-              >
-                <div className="group-hover:scale-110 transition-transform duration-200">
-                  <Icon 
-                    name={project.iconName} 
-                    size={48} 
-                    className={isDark ? 'text-zinc-600' : 'text-light-text-secondary'} 
-                  />
-                </div>
-                {/* 底部渐变遮罩 */}
-                <div
-                  className={`
-                    absolute bottom-0 left-0 right-0 h-16
-                    ${isDark 
-                      ? 'bg-gradient-to-t from-[#141417] to-transparent' 
-                      : 'bg-gradient-to-t from-light-bg-card to-transparent'
-                    }
-                  `}
-                />
+              {/* 图标 */}
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-accent-orange/15">
+                <Icon name={project.iconName} size={24} className="text-accent-orange" />
               </div>
 
-              {/* 内容区域 */}
-              <div className="p-6">
-                {/* 标签 */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <span className="px-2.5 py-1 rounded-full text-xs bg-accent-orange/15 text-accent-orange font-medium">
-                    Lv.{project.difficulty}
+              {/* 难度标签 */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 rounded-full text-xs bg-accent-orange/15 text-accent-orange font-medium">
+                  Lv.{project.difficulty}
+                </span>
+                <span className={`text-xs ${isDark ? 'text-dark-text-muted' : 'text-light-text-muted'}`}>
+                  {['入门', '进阶', '中级', '高级', '专家'][project.difficulty - 1]}
+                </span>
+              </div>
+
+              {/* 标题 */}
+              <h3 className="text-lg font-semibold mb-2">{project.name}</h3>
+
+              {/* 描述 */}
+              <p className={`text-sm mb-4 leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
+                {project.description}
+              </p>
+
+              {/* 技术标签 */}
+              <div className="flex flex-wrap gap-1.5">
+                {project.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className={`
+                      px-2 py-0.5 rounded-full text-xs
+                      ${isDark ? 'bg-zinc-800/50 text-dark-text-muted' : 'bg-light-bg-secondary text-light-text-muted'}
+                    `}
+                  >
+                    {tag}
                   </span>
-                  {project.tags.slice(0, 2).map((tag) => (
-                    <span
-                      key={tag}
-                      className={`
-                        px-2.5 py-1 rounded-full text-xs
-                        ${isDark ? 'bg-dark-bg-secondary text-dark-text-secondary' : 'bg-light-bg-secondary text-light-text-secondary'}
-                      `}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* 标题 */}
-                <h3 className="text-lg font-semibold mb-2">{project.name}</h3>
-
-                {/* 描述 */}
-                <p className={`text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
-                  {project.description}
-                </p>
+                ))}
               </div>
             </Link>
           ))}

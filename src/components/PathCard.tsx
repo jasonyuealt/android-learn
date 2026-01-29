@@ -40,7 +40,7 @@ export function PathCard({ phase, index }: PathCardProps) {
   return (
     <div
       className={`
-        relative rounded-2xl p-6 cursor-pointer transition-all duration-200
+        relative rounded-3xl p-6 cursor-pointer transition-all duration-200
         ${isDark 
           ? 'bg-[#141417] hover:bg-[#1c1c21] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.4)]' 
           : 'bg-light-bg-card hover:bg-light-bg-hover shadow-sm hover:shadow-lg'
@@ -55,7 +55,7 @@ export function PathCard({ phase, index }: PathCardProps) {
     >
 
       {/* 图标 - 使用 Lucide 图标 */}
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${getIconBg()}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${getIconBg()}`}>
         <Icon name={phase.iconName} size={24} className={getIconColor()} />
       </div>
 

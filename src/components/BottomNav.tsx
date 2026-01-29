@@ -29,6 +29,7 @@ export function BottomNav() {
         fixed bottom-8 left-1/2 -translate-x-1/2 z-50
         flex gap-2 p-2 rounded-full
         backdrop-blur-xl shadow-2xl
+        md:hidden
         ${isDark 
           ? 'bg-[#141417]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_8px_32px_rgba(0,0,0,0.5)]' 
           : 'bg-light-bg-card/90 border border-light-border-DEFAULT'

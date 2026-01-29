@@ -128,7 +128,7 @@ export function ResourcesPage() {
             target="_blank"
             rel="noopener noreferrer"
             className={`
-              flex items-start gap-4 p-5 rounded-2xl transition-all duration-200 cursor-pointer
+              flex items-start gap-4 p-5 rounded-3xl transition-all duration-200 cursor-pointer
               ${isDark 
                 ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-[#1c1c21]' 
                 : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm hover:shadow-md'
@@ -136,7 +136,7 @@ export function ResourcesPage() {
               group
             `}
           >
-            <div className={`p-2.5 rounded-xl ${isDark ? 'bg-zinc-800/50' : 'bg-light-bg-secondary'} text-accent-blue`}>
+            <div className={`p-2.5 rounded-2xl ${isDark ? 'bg-zinc-800/50' : 'bg-light-bg-secondary'} text-accent-blue`}>
               {getIcon(item.icon)}
             </div>
             <div className="flex-1 min-w-0">
@@ -155,7 +155,7 @@ export function ResourcesPage() {
   )
 
   return (
-    <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-5xl mx-auto animate-fade-in-up">
+    <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-5xl mx-auto animate-fade-in-up">
       {/* 页面头部 */}
       <header className="mb-12">
         <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-3">资源中心</h1>
@@ -167,7 +167,7 @@ export function ResourcesPage() {
       {/* AI 提示 */}
       <div
         className={`
-          p-6 rounded-2xl mb-12
+          p-6 rounded-3xl mb-12
           ${isDark 
             ? 'bg-gradient-to-r from-accent-green/10 to-accent-blue/10 border border-accent-green/20' 
             : 'bg-gradient-to-r from-accent-green/10 to-accent-blue/10 border border-accent-green/30'

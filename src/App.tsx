@@ -4,6 +4,8 @@ import { useThemeBloc } from './blocs/themeBloc'
 import { BackgroundDecoration } from './components/BackgroundDecoration'
 import { Navbar } from './components/Navbar'
 import { BottomNav } from './components/BottomNav'
+import { KotlinPlayground } from './components/KotlinPlayground'
+import { AiTextAssistant } from './components/AiTextAssistant'
 import { HomePage } from './pages/HomePage'
 import { LearnPage } from './pages/LearnPage'
 import { LessonPage } from './pages/LessonPage'
@@ -33,6 +35,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
       {/* 底部导航 */}
       <BottomNav />
+
+      {/* Kotlin 在线测试浮动按钮 */}
+      <KotlinPlayground />
+
+      {/* AI 文本分析助手（选中文本时显示） */}
+      <AiTextAssistant />
     </div>
   )
 }

@@ -24,7 +24,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
   return (
     <div
       className={`
-        rounded-2xl overflow-hidden cursor-pointer transition-all duration-200
+        rounded-3xl overflow-hidden cursor-pointer transition-all duration-200
         ${isDark 
           ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.4)]' 
           : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm hover:shadow-xl'

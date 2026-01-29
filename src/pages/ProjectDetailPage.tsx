@@ -16,7 +16,7 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-4xl mx-auto text-center">
+      <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-4xl mx-auto text-center">
         <h1 className="text-2xl font-semibold mb-4">项目未找到</h1>
         <Link to="/projects" className="text-accent-green hover:underline">
           返回项目列表
@@ -32,7 +32,7 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-4xl mx-auto animate-fade-in-up">
+    <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-4xl mx-auto animate-fade-in-up">
       {/* 返回链接 */}
       <Link
         to="/projects"
@@ -48,7 +48,7 @@ export function ProjectDetailPage() {
       {/* 项目头部 */}
       <header className="mb-12">
         <div className="flex items-start gap-6 mb-6">
-          <div className={`w-20 h-20 rounded-2xl flex items-center justify-center ${isDark ? 'bg-dark-bg-card' : 'bg-light-bg-secondary'}`}>
+          <div className={`w-20 h-20 rounded-3xl flex items-center justify-center ${isDark ? 'bg-dark-bg-card' : 'bg-light-bg-secondary'}`}>
             <Icon name={project.iconName} size={40} className={isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'} />
           </div>
           <div className="flex-1">
@@ -74,7 +74,7 @@ export function ProjectDetailPage() {
             <span
               key={tag}
               className={`
-                px-3 py-1.5 rounded-lg text-sm
+                px-3 py-1.5 rounded-full text-sm
                 ${isDark ? 'bg-dark-bg-card text-dark-text-secondary' : 'bg-light-bg-secondary text-light-text-secondary'}
               `}
             >
@@ -100,7 +100,7 @@ export function ProjectDetailPage() {
             <div
               key={index}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl
+                flex items-center gap-3 px-4 py-3 rounded-3xl
                 ${isDark ? 'bg-dark-bg-card' : 'bg-light-bg-secondary'}
               `}
             >
@@ -121,7 +121,7 @@ export function ProjectDetailPage() {
             <div
               key={index}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-xl
+                flex items-center gap-2 px-4 py-2 rounded-full
                 ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-card border border-light-border-DEFAULT'}
               `}
             >
@@ -141,7 +141,7 @@ export function ProjectDetailPage() {
               <div
                 key={index}
                 className={`
-                  rounded-2xl overflow-hidden
+                  rounded-3xl overflow-hidden
                   ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-card border border-light-border-DEFAULT shadow-sm'}
                 `}
               >
@@ -175,7 +175,7 @@ export function ProjectDetailPage() {
       <div className="flex justify-center">
         <Link
           to="/learn"
-          className="px-8 py-4 rounded-xl text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+          className="px-8 py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
         >
           先学习基础知识
         </Link>

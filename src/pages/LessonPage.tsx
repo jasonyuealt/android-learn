@@ -5,7 +5,70 @@ import { useThemeBloc } from '../blocs/themeBloc'
 import { useProgressBloc } from '../blocs/progressBloc'
 import { getLessonById, getAdjacentLessons, courseData } from '../data/courses'
 import { QuizSection } from '../components/QuizSection'
+import { CodeBlock } from '../components/CodeBlock'
 import type { LessonContent } from '../data/courses'
+
+/**
+ * 解析行内 Markdown（加粗、代码等）
+ * 需要在 parseMarkdownContent 之前定义，因为后者会调用此函数
+ */
+function parseInlineMarkdown(text: string, isDark: boolean): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, `<code class="${isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-light-bg-secondary text-light-text-primary'} px-1.5 py-0.5 rounded text-sm font-mono">$1</code>`)
+}
+
+/**
+ * 解析 Markdown 内容，支持表格、标题、列表等
+ */
+function parseMarkdownContent(content: string, isDark: boolean): string {
+  // 处理表格
+  const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g
+  let result = content.replace(tableRegex, (_match, headerRow, bodyRows) => {
+    const headers = headerRow.split('|').map((h: string) => h.trim()).filter(Boolean)
+    const rows = bodyRows.trim().split('\n').map((row: string) => 
+      row.split('|').map((cell: string) => cell.trim()).filter(Boolean)
+    )
+    
+    const tableClass = isDark 
+      ? 'w-full my-6 text-sm border-collapse'
+      : 'w-full my-6 text-sm border-collapse'
+    const thClass = isDark
+      ? 'text-left px-4 py-3 bg-zinc-800/50 border-b border-zinc-700 font-medium text-zinc-200'
+      : 'text-left px-4 py-3 bg-light-bg-secondary border-b border-light-border-DEFAULT font-medium'
+    const tdClass = isDark
+      ? 'px-4 py-3 border-b border-zinc-800/50 text-zinc-400'
+      : 'px-4 py-3 border-b border-light-border-subtle text-light-text-secondary'
+    
+    const headerHtml = headers.map((h: string) => 
+      `<th class="${thClass}">${parseInlineMarkdown(h, isDark)}</th>`
+    ).join('')
+    
+    const bodyHtml = rows.map((row: string[]) => 
+      `<tr>${row.map((cell: string) => 
+        `<td class="${tdClass}">${parseInlineMarkdown(cell, isDark)}</td>`
+      ).join('')}</tr>`
+    ).join('')
+    
+    return `<div class="overflow-x-auto rounded-2xl ${isDark ? 'bg-zinc-900/50' : 'bg-light-bg-card border border-light-border-subtle'}"><table class="${tableClass}"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`
+  })
+  
+  // 处理标题
+  result = result.replace(/^## (.*$)/gm, '<h2 class="font-display text-xl font-semibold mt-8 mb-4">$1</h2>')
+  result = result.replace(/^### (.*$)/gm, '<h3 class="font-display text-lg font-semibold mt-6 mb-3">$1</h3>')
+  
+  // 处理行内样式
+  result = parseInlineMarkdown(result, isDark)
+  
+  // 处理列表
+  result = result.replace(/\n- /g, '<br/>• ')
+  
+  // 处理段落
+  result = result.replace(/\n\n/g, '</p><p class="mb-4">')
+  result = result.replace(/\n/g, '<br/>')
+  
+  return result
+}
 
 /**
  * 课程详情页面
@@ -34,7 +97,7 @@ export function LessonPage() {
 
   if (!lesson || !phase) {
     return (
-      <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-4xl mx-auto text-center">
+      <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-4xl mx-auto text-center">
         <h1 className="text-2xl font-semibold mb-4">课程未找到</h1>
         <Link to="/learn" className="text-accent-green hover:underline">
           返回学习页面
@@ -52,50 +115,18 @@ export function LessonPage() {
             key={index} 
             className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}
             dangerouslySetInnerHTML={{ 
-              __html: content.content
-                .replace(/^## (.*$)/gm, '<h2 class="font-display text-xl font-semibold mt-8 mb-4">$1</h2>')
-                .replace(/^### (.*$)/gm, '<h3 class="font-display text-lg font-semibold mt-6 mb-3">$1</h3>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`([^`]+)`/g, `<code class="${isDark ? 'bg-dark-bg-secondary' : 'bg-light-bg-secondary'} px-1.5 py-0.5 rounded text-sm">$1</code>`)
-                .replace(/\n- /g, '<br/>• ')
-                .replace(/\n\n/g, '</p><p class="mb-4">')
-                .replace(/\n/g, '<br/>')
+              __html: parseMarkdownContent(content.content, isDark)
             }}
           />
         )
       
       case 'code':
         return (
-          <div
-            key={index}
-            className={`
-              rounded-2xl overflow-hidden my-6
-              ${isDark ? 'bg-[#0c0c0f] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-secondary border border-light-border-DEFAULT'}
-            `}
-          >
-            <div className={`flex justify-between items-center px-4 py-2 border-b ${isDark ? 'border-zinc-800/50' : 'border-light-border-subtle'}`}>
-              <span className={`text-xs uppercase tracking-widest ${isDark ? 'text-zinc-500' : 'text-light-text-muted'}`}>
-                {content.language || 'code'}
-              </span>
-              <button
-                onClick={() => navigator.clipboard.writeText(content.content)}
-                className={`
-                  px-3 py-1 rounded-lg text-xs transition-all duration-200 cursor-pointer
-                  ${isDark
-                    ? 'bg-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                    : 'bg-light-bg-card border border-light-border-DEFAULT text-light-text-secondary hover:text-light-text-primary'
-                  }
-                `}
-              >
-                复制
-              </button>
-            </div>
-            <pre className="p-4 overflow-x-auto">
-              <code className={`font-mono text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
-                {content.content}
-              </code>
-            </pre>
-          </div>
+          <CodeBlock 
+            key={index} 
+            code={content.content} 
+            language={content.language} 
+          />
         )
       
       case 'tip':
@@ -103,7 +134,7 @@ export function LessonPage() {
           <div
             key={index}
             className={`
-              flex gap-4 p-4 rounded-xl my-6
+              flex gap-4 p-4 rounded-3xl my-6
               ${isDark ? 'bg-accent-green/10 border border-accent-green/20' : 'bg-accent-green/10 border border-accent-green/30'}
             `}
           >
@@ -119,7 +150,7 @@ export function LessonPage() {
           <div
             key={index}
             className={`
-              flex gap-4 p-4 rounded-xl my-6
+              flex gap-4 p-4 rounded-3xl my-6
               ${isDark ? 'bg-accent-orange/10 border border-accent-orange/20' : 'bg-accent-orange/10 border border-accent-orange/30'}
             `}
           >
@@ -148,7 +179,7 @@ export function LessonPage() {
   }
 
   return (
-    <div className="pt-24 pb-32 px-6 md:px-12 lg:px-16 max-w-4xl mx-auto animate-fade-in-up">
+    <div className="pt-20 md:pt-28 pb-32 px-4 md:px-12 lg:px-16 max-w-4xl mx-auto animate-fade-in-up">
       {/* 顶部导航栏 */}
       <div className="flex items-center justify-between gap-4 mb-8">
         {/* 面包屑导航 */}
@@ -170,7 +201,7 @@ export function LessonPage() {
             <Link
               to={`/learn/${prev.phaseId}/${prev.lessonId}`}
               className={`
-                flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 cursor-pointer
+                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-800' 
                   : 'bg-light-bg-secondary text-light-text-secondary hover:text-light-text-primary hover:bg-light-bg-hover'
@@ -186,7 +217,7 @@ export function LessonPage() {
             <Link
               to={`/learn/${next.phaseId}/${next.lessonId}`}
               className={`
-                flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 cursor-pointer
+                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-800' 
                   : 'bg-light-bg-secondary text-light-text-secondary hover:text-light-text-primary hover:bg-light-bg-hover'
@@ -230,14 +261,15 @@ export function LessonPage() {
         {lesson.contents.map((content, index) => renderContent(content, index))}
       </article>
 
-      {/* AI 小测验区域 - 直接内嵌在页面中 */}
+      {/* AI 小测验区域 - 支持多题型、错题重测 */}
       <QuizSection
+        lessonId={`${phaseId}-${lessonId}`}
         lessonTitle={lesson.title}
         lessonContent={lesson.contents
           .filter(c => c.type === 'text')
           .map(c => c.content)
           .join('\n')
-          .slice(0, 1000)}
+          .slice(0, 2000)}
         onComplete={(score) => {
           console.log(`测验完成，得分: ${score}`)
         }}
@@ -250,7 +282,7 @@ export function LessonPage() {
           <div className="mb-8">
             <button
               onClick={handleComplete}
-              className="w-full py-4 rounded-xl text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50 flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50 flex items-center justify-center gap-2"
             >
               <Check size={20} />
               完成学习，继续下一课
@@ -264,7 +296,7 @@ export function LessonPage() {
             <Link
               to={`/learn/${prev.phaseId}/${prev.lessonId}`}
               className={`
-                flex-1 flex items-center gap-3 px-6 py-4 rounded-xl transition-all duration-200 cursor-pointer
+                flex-1 flex items-center gap-3 px-6 py-4 rounded-3xl transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-[#1c1c21]' 
                   : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm'
@@ -285,7 +317,7 @@ export function LessonPage() {
             <Link
               to={`/learn/${next.phaseId}/${next.lessonId}`}
               className={`
-                flex-1 flex items-center justify-end gap-3 px-6 py-4 rounded-xl transition-all duration-200 cursor-pointer
+                flex-1 flex items-center justify-end gap-3 px-6 py-4 rounded-3xl transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-[#1c1c21]' 
                   : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm'
@@ -302,7 +334,7 @@ export function LessonPage() {
             <Link
               to="/learn"
               className={`
-                flex-1 flex items-center justify-end gap-3 px-6 py-4 rounded-xl transition-all duration-200 cursor-pointer
+                flex-1 flex items-center justify-end gap-3 px-6 py-4 rounded-3xl transition-all duration-200 cursor-pointer
                 ${isDark 
                   ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-[#1c1c21]' 
                   : 'bg-light-bg-card border border-light-border-DEFAULT hover:border-light-text-muted shadow-sm'
