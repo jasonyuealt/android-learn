@@ -356,7 +356,7 @@ export function KotlinPlayground({ onOpenAI }: { onOpenAI?: () => void }) {
         `}
         title="AI 助手"
       >
-        <Logo size={22} className="text-dark-bg-primary" />
+        <Logo size={22} className="text-white" />
       </button>
     </>
   )

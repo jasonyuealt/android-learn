@@ -80,8 +80,8 @@ export function Navbar() {
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2 md:gap-3 cursor-pointer">
         <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 flex items-center justify-center shadow-lg shadow-accent-green/20">
-          <Logo size={20} className="text-dark-bg-primary md:hidden" />
-          <Logo size={22} className="text-dark-bg-primary hidden md:block" />
+          <Logo size={20} className="text-white md:hidden" />
+          <Logo size={22} className="text-white hidden md:block" />
         </div>
         <span className="font-display font-bold text-lg md:text-xl tracking-tight hidden sm:block">
           Android Learn
