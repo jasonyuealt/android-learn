@@ -19,6 +19,19 @@ function parseInlineMarkdown(text: string, isDark: boolean): string {
 }
 
 /**
+ * 解析提示框内容（支持加粗、代码、换行）
+ */
+function parseAlertContent(text: string, isDark: boolean): string {
+  let result = parseInlineMarkdown(text, isDark)
+  // 处理列表项
+  result = result.replace(/\n- /g, '<br/>• ')
+  // 处理换行
+  result = result.replace(/\n\n/g, '<br/><br/>')
+  result = result.replace(/\n/g, '<br/>')
+  return result
+}
+
+/**
  * 解析 Markdown 内容，支持表格、标题、列表等
  */
 function parseMarkdownContent(content: string, isDark: boolean): string {
@@ -139,9 +152,10 @@ export function LessonPage() {
             `}
           >
             <Lightbulb size={20} className="text-accent-green flex-shrink-0 mt-0.5" />
-            <p className={`text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
-              {content.content}
-            </p>
+            <div 
+              className={`text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}
+              dangerouslySetInnerHTML={{ __html: parseAlertContent(content.content, isDark) }}
+            />
           </div>
         )
       
@@ -155,9 +169,10 @@ export function LessonPage() {
             `}
           >
             <AlertTriangle size={20} className="text-accent-orange flex-shrink-0 mt-0.5" />
-            <p className={`text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
-              {content.content}
-            </p>
+            <div 
+              className={`text-sm leading-relaxed ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}
+              dangerouslySetInnerHTML={{ __html: parseAlertContent(content.content, isDark) }}
+            />
           </div>
         )
       

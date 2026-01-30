@@ -19,198 +19,289 @@ export const phase1: Phase = {
         {
           id: 'kotlin-variables',
           title: '变量与数据类型',
-          description: 'val/var、基本类型、使用场景、注意事项',
-          duration: 20,
+          description: 'val/var、基本类型、实用场景',
+          duration: 16,
           contents: [
             {
               type: 'text',
-              content: '## val 和 var：核心区别\n\nKotlin 有两种变量声明方式：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: 'fun main() {\n    val name = "Android"    // val = 不可变\n    var count = 0           // var = 可变\n    \n    count = count + 1\n    println("name = $name")   // 输出: name = Android\n    println("count = $count") // 输出: count = 1\n    \n    // name = "iOS"  // 编译错误！val 不能重新赋值\n}'
-            },
-            {
-              type: 'text',
-              content: '## val vs var 使用场景\n\n| 场景 | 推荐 | 原因 |\n|-----|------|------|\n| 用户 ID | val | 登录后不变 |\n| 计数器 | var | 需要递增 |\n| 配置参数 | val | 读取后不变 |\n| 表单输入 | var | 用户会修改 |\n| API 响应 | val | 一次性数据 |\n| 页码索引 | var | 翻页时改变 |'
+              content: '## 为什么要学变量和类型？\n\n想象你要做一个计步器 App：需要存储步数（会变化）、用户名（不变）、今日目标（不变）...\n\n在 Kotlin 中，不同的数据用不同的变量和类型来存储。选对了类型，代码更清晰、bug 更少。'
             },
             {
               type: 'tip',
-              content: '原则：优先用 val，只有确实需要修改时才用 var。代码审查时看到不必要的 var 可以建议改成 val。'
+              content: '**JS 开发者注意**：Kotlin 的 `val` 类似 JS 的 `const`，`var` 类似 `let`。但 Kotlin 的类型检查更严格，能在编译时发现更多问题。'
             },
             {
               type: 'text',
-              content: '## Int：整数\n\n**用在哪里**：ID、数量、索引、年龄等不需要小数的数值。'
+              content: '## val 和 var：可变 vs 不可变\n\nKotlin 有两种变量声明方式：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'fun main() {\n    val userId = 12345\n    val itemCount = 3\n    val age = 25\n    \n    println("用户ID: $userId")     // 输出: 用户ID: 12345\n    println("商品数量: $itemCount") // 输出: 商品数量: 3\n    println("年龄: $age")          // 输出: 年龄: 25\n    \n    // Int 范围: -2147483648 到 2147483647\n    println("Int最大值: ${Int.MAX_VALUE}") // 输出: Int最大值: 2147483647\n}'
-            },
-            {
-              type: 'warning',
-              content: '注意：Int 最大约 21 亿。如果数值可能超过（如时间戳、大型 ID），要用 Long。'
+              content: 'fun main() {\n    val userName = "张三"    // val = 不可变（类似 const）\n    var stepCount = 0        // var = 可变（类似 let）\n    \n    stepCount = stepCount + 1000  // 可以修改\n    println("$userName 今天走了 $stepCount 步")  // 输出: 张三 今天走了 1000 步\n    \n    // userName = "李四"  // 编译错误！val 不能重新赋值\n}'
             },
             {
               type: 'text',
-              content: '## Long：长整数\n\n**用在哪里**：时间戳、大型 ID、文件大小（字节数）等可能超过 21 亿的数值。'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: 'fun main() {\n    val timestamp = 1706500000000L  // 注意 L 后缀！\n    val fileSize = 5368709120L     // 5GB 的字节数\n    val bigId = 9223372036854775807L\n    \n    println("时间戳: $timestamp")   // 输出: 时间戳: 1706500000000\n    println("文件大小: ${fileSize / 1024 / 1024 / 1024}GB") // 输出: 文件大小: 5GB\n    \n    // 常见用法：获取当前时间戳\n    val now = System.currentTimeMillis()\n    println("当前时间戳: $now")\n}'
+              content: '**何时用 val？何时用 var？**\n\n| 数据 | 推荐 | 理由 |\n|-----|------|------|\n| 用户 ID | val | 登录后不变 |\n| 计数器 | var | 需要递增 |\n| 配置 URL | val | 固定不变 |\n| 表单输入 | var | 用户会修改 |\n| API 返回数据 | val | 一次性获取 |'
             },
             {
               type: 'tip',
-              content: '时间戳一定要用 Long！System.currentTimeMillis() 返回的就是 Long 类型。'
+              content: '原则：**优先用 val**。只有确定需要修改时才用 var。这能避免意外修改导致的 bug。'
             },
             {
               type: 'text',
-              content: '## Double 和 Float：小数\n\n**用在哪里**：价格、评分、百分比、坐标等需要小数的数值。'
+              content: '## 常用数据类型\n\n| 类型 | 用途 | 示例 |\n|-----|------|------|\n| `Int` | 整数（-21亿~21亿） | 年龄、数量、ID |\n| `Long` | 大整数 | 时间戳、文件大小 |\n| `Double` | 小数 | 价格、评分、百分比 |\n| `Boolean` | 布尔值 | 开关、是否登录 |\n| `String` | 字符串 | 名称、URL、描述 |'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'fun main() {\n    val price = 99.99          // 默认是 Double\n    val rating = 4.5           // 评分\n    val percent = 0.75         // 75%\n    val latitude = 39.9042f    // Float 需要 f 后缀\n    \n    println("价格: ¥$price")    // 输出: 价格: ¥99.99\n    println("评分: $rating 星") // 输出: 评分: 4.5 星\n    println("进度: ${percent * 100}%") // 输出: 进度: 75.0%\n    \n    // Double 精度更高，一般用 Double\n    // Float 占用内存小，大量数据时可以考虑\n}'
+              content: 'fun main() {\n    // 整数\n    val age = 25               // Int\n    val userId = 12345         // Int\n    \n    // 大整数（注意 L 后缀）\n    val timestamp = System.currentTimeMillis()  // Long：1706500000000\n    val fileSize = 5368709120L                  // Long：5GB 字节数\n    \n    // 小数\n    val price = 99.99          // Double（默认）\n    val rating = 4.5           // Double\n    \n    // 布尔值\n    val isLoggedIn = true\n    val isDarkMode = false\n    \n    // 字符串\n    val name = "张三"\n    val greeting = "你好，$name"  // 字符串模板\n    val info = "明年 ${age + 1} 岁"  // 表达式用 ${}\n}'
             },
             {
               type: 'warning',
-              content: '金额计算不要用 Float/Double！浮点数有精度问题。金额建议用分（Int）或 BigDecimal。'
+              content: '**注意：**\n\n- Int 最大约 21 亿，时间戳必须用 Long\n- 金额计算不要用 Double（有精度问题），建议用分（Int）\n- 大数字记得加 L 后缀：`5368709120L`'
             },
             {
               type: 'text',
-              content: '## Boolean：布尔值\n\n**用在哪里**：开关状态、是否选中、是否登录等二选一的状态。'
+              content: '## 实战：常见问题对比\n\n看看这些代码有什么问题：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'fun main() {\n    val isLoggedIn = true\n    val isDarkMode = false\n    val hasPermission = true\n    \n    println("已登录: $isLoggedIn")     // 输出: 已登录: true\n    println("深色模式: $isDarkMode")   // 输出: 深色模式: false\n    \n    // 常见用法：条件判断\n    if (isLoggedIn) {\n        println("欢迎回来！")  // 输出: 欢迎回来！\n    }\n    \n    // 布尔运算\n    val canEdit = isLoggedIn && hasPermission\n    println("可以编辑: $canEdit")      // 输出: 可以编辑: true\n}'
+              content: '// [错误] 问题1：用 var 存储不会变的数据\nvar apiUrl = "https://api.example.com"  // 应该用 val\n\n// [正确] 不会改变的配置用 val\nval apiUrl = "https://api.example.com"\n\n// [错误] 问题2：用 Int 存储时间戳\nval timestamp = System.currentTimeMillis().toInt()  // Int 存不下！\n\n// [正确] 时间戳必须用 Long\nval timestamp = System.currentTimeMillis()  // Long\n\n// [错误] 问题3：直接用 toInt() 转换用户输入\nval ageInput = editText.text.toString()\nval age = ageInput.toInt()  // 用户输入"abc"就崩溃！\n\n// [正确] 用 toIntOrNull() + 默认值\nval age = ageInput.toIntOrNull() ?: 0'
             },
             {
               type: 'text',
-              content: '## String：字符串\n\n**用在哪里**：名称、描述、URL、JSON 等文本内容。'
+              content: '## 类型转换技巧\n\nKotlin 不会自动转换类型，需要显式调用转换方法：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'fun main() {\n    val name = "张三"\n    val url = "https://api.example.com"\n    \n    // 字符串模板（非常常用！）\n    val greeting = "你好，$name"\n    println(greeting)  // 输出: 你好，张三\n    \n    // 表达式用 ${}\n    val age = 25\n    val info = "明年 ${age + 1} 岁"\n    println(info)      // 输出: 明年 26 岁\n    \n    // 常用方法\n    println(name.length)           // 输出: 2\n    println(name.isEmpty())        // 输出: false\n    println("  hello  ".trim())    // 输出: hello\n    println("hello".uppercase())   // 输出: HELLO\n}'
-            },
-            {
-              type: 'text',
-              content: '## 类型转换\n\nKotlin 不会自动转换类型，需要显式调用转换方法。'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: 'fun main() {\n    // 数字之间转换\n    val intVal = 42\n    val longVal = intVal.toLong()\n    val doubleVal = intVal.toDouble()\n    println("Int: $intVal, Long: $longVal, Double: $doubleVal")\n    // 输出: Int: 42, Long: 42, Double: 42.0\n    \n    // 字符串转数字（安全方式）\n    val str1 = "123"\n    val str2 = "abc"\n    \n    val num1 = str1.toIntOrNull()  // 成功返回 123\n    val num2 = str2.toIntOrNull()  // 失败返回 null\n    \n    println("num1: $num1")  // 输出: num1: 123\n    println("num2: $num2")  // 输出: num2: null\n    \n    // 提供默认值\n    val safeNum = str2.toIntOrNull() ?: 0\n    println("safeNum: $safeNum")  // 输出: safeNum: 0\n}'
+              content: '// 数字之间转换\nval intVal = 42\nval longVal = intVal.toLong()      // Int → Long\nval doubleVal = intVal.toDouble()  // Int → Double\n\n// 字符串转数字（安全方式）\nval str = "123"\nval num = str.toIntOrNull()  // 成功返回 123，失败返回 null\n\n// 配合默认值使用\nval safeNum = str.toIntOrNull() ?: 0  // 失败时用 0'
             },
             {
               type: 'warning',
-              content: '永远不要用 toInt() 转换用户输入！用 toIntOrNull() 配合 ?: 提供默认值，避免崩溃。'
+              content: '**永远不要用 `toInt()` 转换用户输入！**\n\n用 `toIntOrNull()` 配合 `?:` 提供默认值，避免崩溃。'
             },
             {
-              type: 'tip',
-              content: '想要运行代码验证结果？点击导航栏的「在线测验」按钮，可以在弹窗中测试 Kotlin 代码。'
+              type: 'text',
+              content: '## 速查表：数据类型\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: 'val/var      → val 优先，var 仅在需要修改时用\nInt          → 整数（-21亿~21亿），年龄、数量、ID\nLong         → 大整数，时间戳、文件大小（加 L 后缀）\nDouble       → 小数，价格、评分、百分比\nBoolean      → 布尔值（true/false），开关、状态\nString       → 字符串，名称、URL、描述\n字符串模板    → "你好，$name" 或 "明年 ${age + 1} 岁"\n类型转换      → toIntOrNull() ?: 默认值（安全转换）'
             }
           ]
         },
         {
           id: 'kotlin-functions',
           title: '函数与 Lambda',
-          description: '函数定义、默认参数、Lambda 表达式、高阶函数',
-          duration: 18,
+          description: '函数定义、Lambda 表达式、Android 中的应用',
+          duration: 15,
           contents: [
             {
               type: 'text',
-              content: '## 函数定义\n\n使用 fun 关键字定义函数。看函数时关注三点：输入什么、输出什么、做了什么。'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 基本语法\nfun add(a: Int, b: Int): Int {\n    return a + b\n}\n\n// 单表达式函数 - 更简洁\nfun add(a: Int, b: Int) = a + b\n\n// 无返回值用 Unit（可省略）\nfun printMessage(msg: String) {\n    println(msg)\n}'
-            },
-            {
-              type: 'text',
-              content: '## 默认参数和命名参数\n\n这是 Kotlin 很实用的特性，AI 生成的代码经常用到：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 默认参数\nfun greet(name: String = "用户", greeting: String = "你好") = "$greeting, $name!"\n\ngreet()                    // "你好, 用户!"\ngreet("张三")              // "你好, 张三!"\ngreet("张三", "早上好")    // "早上好, 张三!"\n\n// 命名参数 - 可以跳过某些参数\ngreet(greeting = "晚安")   // "晚安, 用户!"'
-            },
-            {
-              type: 'text',
-              content: '## Lambda 表达式\n\nLambda 是可以传递的代码块，在 Android 中大量使用。'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// Lambda 基本语法: { 参数 -> 函数体 }\nval double = { x: Int -> x * 2 }\nprintln(double(5))  // 10\n\n// 多个参数\nval sum = { a: Int, b: Int -> a + b }\nprintln(sum(3, 4))  // 7\n\n// 无参数\nval sayHello = { println("Hello!") }\nsayHello()  // Hello!'
+              content: '## 为什么要学函数和 Lambda？\n\nAndroid 开发中到处都是函数和 Lambda：\n- 点击按钮 → 执行一段代码（Lambda）\n- 过滤列表 → 用条件筛选（Lambda）\n- 网络请求回调 → 数据返回后处理（Lambda）\n\n看懂这些，才能理解大部分 Android 代码在做什么。'
             },
             {
               type: 'tip',
-              content: '当 Lambda 只有一个参数时，可以省略参数名，用 it 代替：{ x -> x * 2 } 等价于 { it * 2 }'
+              content: '**JS 开发者注意**：Kotlin 的 Lambda 就像 JS 的箭头函数 `() => {}`，但语法稍有不同。'
             },
             {
               type: 'text',
-              content: '## Lambda 在 Android 中的应用\n\n这些场景你会经常遇到：'
+              content: '## 函数基础\n\n使用 `fun` 关键字定义函数：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 1. 按钮点击事件\nbutton.setOnClickListener { \n    showMessage("按钮被点击了")\n}\n\n// 2. 列表操作\nval numbers = listOf(1, 2, 3, 4, 5)\nnumbers.filter { it > 2 }     // [3, 4, 5]\nnumbers.map { it * 2 }        // [2, 4, 6, 8, 10]\nnumbers.forEach { print(it) } // 12345\n\n// 3. 网络请求回调\napi.getUser { user ->\n    // 数据返回后执行\n    updateUI(user)\n}'
+              content: '// 基本语法：fun 函数名(参数: 类型): 返回类型 { 函数体 }\nfun add(a: Int, b: Int): Int {\n    return a + b\n}\n\n// 单表达式函数（更简洁）\nfun add(a: Int, b: Int) = a + b  // 自动推断返回 Int\n\n// 无返回值（Unit 可省略）\nfun showMessage(msg: String) {\n    println(msg)\n}'
             },
             {
               type: 'text',
-              content: '## 高阶函数\n\n接收函数作为参数或返回函数的函数：'
+              content: '## 默认参数：减少重载\n\nKotlin 支持默认参数，不需要写多个重载函数：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 函数作为参数\nfun calculate(a: Int, b: Int, operation: (Int, Int) -> Int): Int {\n    return operation(a, b)\n}\n\ncalculate(5, 3, { x, y -> x + y })  // 8\ncalculate(5, 3) { x, y -> x * y }   // 15 （尾随 Lambda 语法）\n\n// 常用高阶函数\nlistOf(1, 2, 3).let { println(it) }    // let: 对对象执行操作\nuser?.also { saveToCache(it) }         // also: 执行附加操作\nlist.takeIf { it.isNotEmpty() }        // takeIf: 条件过滤'
+              content: '// 有默认值的参数\nfun greet(name: String = "用户", greeting: String = "你好") {\n    println("$greeting, $name!")\n}\n\ngreet()                      // 你好, 用户!\ngreet("张三")                // 你好, 张三!\ngreet("张三", "早上好")      // 早上好, 张三!\ngreet(greeting = "晚安")     // 命名参数：晚安, 用户!'
+            },
+            {
+              type: 'tip',
+              content: '**命名参数**让你可以跳过某些参数，或者不按顺序传参，代码更清晰。'
+            },
+            {
+              type: 'text',
+              content: '## Lambda：可传递的代码块\n\nLambda 是一段可以作为参数传递的代码，在 Android 中非常常用。'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// Lambda 语法：{ 参数 -> 函数体 }\nval double = { x: Int -> x * 2 }\nprintln(double(5))  // 输出: 10\n\n// 多个参数\nval sum = { a: Int, b: Int -> a + b }\nprintln(sum(3, 4))  // 输出: 7\n\n// 单参数可以用 it 简化\nval triple = { it: Int -> it * 3 }\nval tripleSimple = { it * 3 }  // 等价写法\nprintln(tripleSimple(5))  // 输出: 15'
+            },
+            {
+              type: 'text',
+              content: '## Lambda 在 Android 中的 3 大用途\n\n**1. 按钮点击**'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 点击按钮时执行的代码\nbutton.setOnClickListener { \n    showMessage("按钮被点击了")\n    updateCounter()\n}'
+            },
+            {
+              type: 'text',
+              content: '**2. 列表操作**'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: 'val numbers = listOf(1, 2, 3, 4, 5)\n\n// 过滤：找出大于 2 的数\nval filtered = numbers.filter { it > 2 }  // [3, 4, 5]\n\n// 转换：每个数乘以 2\nval doubled = numbers.map { it * 2 }      // [2, 4, 6, 8, 10]\n\n// 遍历：依次打印\nnumbers.forEach { println(it) }           // 1 2 3 4 5'
+            },
+            {
+              type: 'text',
+              content: '**3. 异步回调**'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 网络请求完成后执行\napi.getUser { user ->\n    textView.text = user.name\n    updateUI(user)\n}\n\n// 数据库查询完成后执行\ndatabase.query { results ->\n    showResults(results)\n}'
+            },
+            {
+              type: 'text',
+              content: '## 实战：理解 Lambda 的执行时机'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// [错误] 误以为 Lambda 立即执行\nbutton.setOnClickListener { \n    val data = fetchDataFromNetwork()  // 网络请求！会卡住 UI\n}\n\n// [正确] Lambda 在点击时才执行\nbutton.setOnClickListener { \n    // 这里的代码等用户点击按钮时才运行\n    viewModel.loadData()  // 异步加载，不会卡 UI\n}'
             },
             {
               type: 'warning',
-              content: '审查要点：Lambda 中的代码在特定时机执行（点击时、数据返回时）。确保 AI 生成的 Lambda 在正确时机做正确的事。'
+              content: '**重点：Lambda 中的代码不是立即执行，而是在特定时机执行**\n\n- 点击事件：用户点击时执行\n- 列表操作：遍历每个元素时执行\n- 异步回调：数据返回时执行'
+            },
+            {
+              type: 'text',
+              content: '## 速查表：函数与 Lambda\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: '函数定义       → fun 函数名(参数: 类型): 返回类型 { ... }\n单表达式函数   → fun add(a: Int, b: Int) = a + b\n默认参数       → fun greet(name: String = "用户")\n命名参数       → greet(greeting = "晚安")\nLambda 语法    → { 参数 -> 函数体 } 或 { it }\n按钮点击       → button.setOnClickListener { ... }\n列表过滤       → list.filter { it > 2 }\n列表转换       → list.map { it * 2 }\n异步回调       → api.getUser { user -> ... }'
             }
           ]
         },
         {
           id: 'kotlin-null-safety',
-          title: '空安全（重点）',
-          description: 'Kotlin 核心特性，?. / ?: / !! 操作符',
-          duration: 15,
+          title: '空安全（Kotlin 核心特性）',
+          description: '?. / ?: / !! / lateinit - 防止 App 崩溃',
+          duration: 18,
           contents: [
             {
               type: 'text',
-              content: '## 为什么空安全是最重要的？\n\n**NullPointerException（空指针异常）** 是 App 崩溃的头号原因。Kotlin 从语言层面解决这个问题。\n\n审查 AI 代码时，空安全是最需要关注的点之一。'
-            },
-            {
-              type: 'text',
-              content: '## 可空 vs 非空\n\n| 类型 | 含义 | 示例 |\n|-----|------|------|\n| `String` | 一定有值，不可能是 null | `val name: String = "张三"` |\n| `String?` | 可能有值，也可能是 null | `val name: String? = null` |'
+              content: '## 为什么要学空安全？\n\n想象一下：你写了一个显示用户昵称的功能，测试时发现 App 崩溃了。'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'val name: String = "Kotlin"  // 非空，一定有值\nval nickname: String? = null  // 可空，可能是 null\n\n// 非空类型不能赋值 null\n// name = null  // 编译错误！\n\n// 可空类型不能直接调用方法\n// nickname.length  // 编译错误！因为可能是 null'
+              content: 'fun showUserProfile(userId: String) {\n    val user = database.getUser(userId)\n    textView.text = "欢迎：${user.nickname}"  // 崩溃！\n}\n\n// Logcat 显示：\n// NullPointerException: Attempt to read from field \'String User.nickname\' on a null object'
             },
             {
               type: 'text',
-              content: '## 安全处理可空类型\n\n| 操作符 | 作用 | 示例 |\n|-------|------|------|\n| `?.` | 安全调用，null 时返回 null | `name?.length` |\n| `?:` | Elvis 操作符，null 时用默认值 | `name ?: "默认"` |\n| `!!` | 强制断言非空（危险！） | `name!!.length` |'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: 'val name: String? = getUserName()  // 可能返回 null\n\n// 方式1: 安全调用\nval length = name?.length  // null 时返回 null，不崩溃\n\n// 方式2: 提供默认值（最常用）\nval displayName = name ?: "游客"  // null 时显示"游客"\n\n// 方式3: let 块 - null 时不执行\nname?.let { n ->\n    println("用户名: $n")\n    println("长度: ${n.length}")\n}\n\n// 方式4: 强制断言（除非 100% 确定不为 null，否则不要用！）\n// val len = name!!.length  // 如果 name 是 null，会崩溃！'
-            },
-            {
-              type: 'warning',
-              content: '**审查重点**：看到 `!!` 要警惕！除非有充分理由，否则应该用 `?.` 或 `?:` 替代。AI 有时会生成 `!!`，这是需要你修正的地方。'
+              content: '**问题：** 用户没设置昵称，`nickname` 是 `null`，但代码直接使用了它。\n\n在 Java/JavaScript 里，这种错误只能运行时发现。Kotlin 从语言层面解决了这个问题。'
             },
             {
               type: 'tip',
-              content: '**常见模式**：`data?.let { /* 处理非空数据 */ } ?: run { /* 处理空数据情况 */ }`'
+              content: '**JS 开发者注意**：Kotlin 的 `?.` 就像 TS 的 Optional Chaining，但编译器会强制你处理 null，不给你崩溃的机会。'
+            },
+            {
+              type: 'text',
+              content: '## 基础：认识可空类型 `?`\n\nKotlin 用类型上的 `?` 区分"保证有值"和"可能是 null"：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 保证有值（不会是 null）\nval appName: String = "Android学习"\nprintln(appName.length)  // 永远安全\n\n// 可能是 null（类型后面有 ?）\nval nickname: String? = getUserNickname()  // 注意这个问号！\n// println(nickname.length)  // 编译错误！Kotlin 不让你直接用'
+            },
+            {
+              type: 'text',
+              content: '看到 `String?`、`User?`、`List<User>?` 就知道"这个变量可能是 null，需要特殊处理"。'
+            },
+            {
+              type: 'text',
+              content: '## 处理方式1：安全调用 `?.`\n\n**含义：** 如果不是 null 就调用，否则返回 null（不会崩溃）。'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: 'val nickname: String? = getUserNickname()\n\n// 安全写法\nval length = nickname?.length  // nickname 是 null 时，返回 null\n\n// 链式调用也安全\nval firstChar = nickname?.uppercase()?.first()  // 任何一步 null 就返回 null'
+            },
+            {
+              type: 'tip',
+              content: '`?.` 是 Kotlin 最常用的空安全操作符，代码里到处都是。'
+            },
+            {
+              type: 'text',
+              content: '## 处理方式2：提供默认值 `?:`\n\n**含义：** 如果是 null 就用右边的默认值。'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: 'val nickname: String? = null\n\n// null 时用默认值\nval displayName = nickname ?: "游客"  \nprintln("欢迎：$displayName")  // 输出: 欢迎：游客\n\n// Android 中最常见的用法\nval userName = intent.getStringExtra("user_name") ?: "未知用户"\nval userId = intent.getIntExtra("user_id", -1)'
+            },
+            {
+              type: 'tip',
+              content: '**JS 开发者注意**：`?:` 就像 JS 的 `??`（Nullish Coalescing），非常常用。'
+            },
+            {
+              type: 'text',
+              content: '## 危险操作：强制断言 `!!`\n\n**含义：** 告诉编译器"我保证这个变量不是 null"。如果实际是 null → 直接崩溃！'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// [错误] 危险写法（容易崩溃）\nval user = database.getUser(userId!!)  // userId 是 null → 崩溃\ntextView.text = user!!.name            // user 是 null → 崩溃\n\n// [正确] 安全写法\nval user = userId?.let { database.getUser(it) } ?: return\ntextView.text = user.name  // 这里 user 保证非空'
+            },
+            {
+              type: 'warning',
+              content: '**重点：看到 `!!` 就要小心！**\n\n99% 的情况下应该改成：\n- `user!!.name` → `user?.name ?: "默认值"`\n- `userId!!` → `userId ?: return`\n\n`!!` 就像在说"我不管了，出问题就崩溃吧"，是最不安全的写法。'
+            },
+            {
+              type: 'text',
+              content: '## Android 特有：延迟初始化 `lateinit`\n\n**场景：** Activity 中的 ViewBinding 必须在 `onCreate` 才能初始化。'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// Activity 代码中最常见的用法\nclass MainActivity : AppCompatActivity() {\n    private lateinit var binding: ActivityMainBinding  // 稍后初始化\n    \n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        binding = ActivityMainBinding.inflate(layoutInflater)  // 这里初始化\n        \n        // 之后可以直接用，不需要 ?.\n        binding.button.setOnClickListener { }\n        binding.textView.text = "Hello"\n    }\n}'
+            },
+            {
+              type: 'tip',
+              content: '`lateinit` 告诉编译器："我保证在用之前会初始化，别逼我写 `?`"。主要用于 ViewBinding、依赖注入等场景。'
+            },
+            {
+              type: 'text',
+              content: '## 实战：3 种常见问题\n\n结合上面学的知识，看看这些代码有什么问题：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// [错误] 问题1：滥用 !!\nval userName = intent.getStringExtra("name")!!\n// [正确] 改进：val userName = intent.getStringExtra("name") ?: "默认值"\n\n// [错误] 问题2：ViewBinding 用可空类型\nprivate var binding: ActivityMainBinding? = null\n// [正确] 改进：private lateinit var binding: ActivityMainBinding\n\n// [错误] 问题3：不处理 null 直接用\nval user = database.getUser(id)\ntextView.text = user.name  // user 可能是 null\n// [正确] 改进：textView.text = user?.name ?: "未知用户"'
+            },
+            {
+              type: 'text',
+              content: '## 速查表：空安全操作符\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: '?     → 标记可空类型            String? = null\n?.    → 安全调用                user?.name\n?:    → 提供默认值              name ?: "游客"\n!!    → 强制断言（危险，慎用）   name!!\nlateinit → 延迟初始化          lateinit var binding'
+            },
+            {
+              type: 'warning',
+              content: '**一句话总结：**\n\n**"`!!` 越少越好，`?.` 和 `?:` 越多越安全。"**\n\n遇到 `!!` 先想想能不能改成 `?.` 或 `?:`。实在改不了，至少要确认"这里 100% 不会是 null"。'
+            },
+            {
+              type: 'tip',
+              content: '**下节预告：** 学完类与对象后，你会遇到 `data class User(val nickname: String?)`。空安全是贯穿整个 Android 开发的基础，慢慢就习惯了。'
             }
           ]
         },
