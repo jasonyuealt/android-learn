@@ -21,14 +21,39 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // 验证环境变量
+  // 验证环境变量并记录详细日志
+  console.log('Environment check:', {
+    hasApiBase: !!API_BASE,
+    hasApiKey: !!API_KEY,
+    model: MODEL,
+    apiBaseLength: API_BASE?.length || 0,
+    apiKeyLength: API_KEY?.length || 0
+  })
+
   if (!API_BASE || !API_KEY) {
-    console.error('Missing AI API configuration')
-    return res.status(500).json({ error: 'Server configuration error' })
+    console.error('Missing AI API configuration:', {
+      API_BASE: API_BASE ? 'present' : 'missing',
+      API_KEY: API_KEY ? 'present' : 'missing'
+    })
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      details: {
+        apiBase: API_BASE ? 'configured' : 'missing',
+        apiKey: API_KEY ? 'configured' : 'missing'
+      }
+    })
   }
 
   try {
     const { messages, systemPrompt, maxTokens = 1500, temperature = 0.7, stream = true } = req.body
+
+    console.log('Request received:', {
+      messagesCount: messages?.length || 0,
+      hasSystemPrompt: !!systemPrompt,
+      maxTokens,
+      temperature,
+      stream
+    })
 
     // 验证请求参数
     if (!messages || !Array.isArray(messages)) {
@@ -41,6 +66,8 @@ export default async function handler(
       : messages
 
     // 调用真实的 AI API
+    console.log('Calling AI API:', `${API_BASE}/chat/completions`)
+    
     const response = await fetch(`${API_BASE}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -56,8 +83,16 @@ export default async function handler(
       })
     })
 
+    console.log('AI API response status:', response.status)
+
     if (!response.ok) {
-      throw new Error(`AI API error: ${response.status}`)
+      const errorText = await response.text()
+      console.error('AI API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      throw new Error(`AI API error: ${response.status} - ${errorText}`)
     }
 
     // 根据 stream 参数决定返回格式
@@ -91,13 +126,18 @@ export default async function handler(
     }
 
   } catch (error) {
-    console.error('AI API error:', error)
+    console.error('Handler error:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     
     // 如果还没有发送响应，返回错误
     if (!res.headersSent) {
       res.status(500).json({
         error: 'AI service unavailable',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: '500'
       })
     }
   }
