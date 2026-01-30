@@ -1,10 +1,10 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2020",
     "target": "ES2020",
     "lib": ["ES2020"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": false,
     "jsx": "preserve",
     "allowImportingTsExtensions": false
