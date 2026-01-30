@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { User } from '../types'
 import { supabase } from '../lib/supabase'
 import { registerUser, loginUser, logoutUser, getCurrentUser } from '../services/supabaseService'
+import { useProgressBloc } from './progressBloc'
 
 /**
  * 认证状态接口
@@ -139,7 +140,7 @@ export const useAuthBloc = create<AuthState>()(
         await logoutUser()
         
         // 清空进度数据
-        const { resetProgress } = require('./progressBloc').useProgressBloc.getState()
+        const { resetProgress } = useProgressBloc.getState()
         resetProgress()
         
         set({ 
