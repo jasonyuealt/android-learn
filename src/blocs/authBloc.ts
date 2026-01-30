@@ -1,240 +1,177 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { User, UserAccount } from '../types'
-
-/**
- * 简单的密码哈希函数（仅用于本地演示，生产环境请使用 bcrypt 等）
- */
-const hashPassword = async (password: string): Promise<string> => {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-/**
- * 验证密码
- */
-const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
-  const passwordHash = await hashPassword(password)
-  return passwordHash === hash
-}
-
-/**
- * 生成随机 ID
- */
-const generateId = (): string => {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
-}
-
-/**
- * 生成随机头像（使用 DiceBear API 风格的颜色）
- */
-const generateAvatar = (username: string): string => {
-  const colors = ['green', 'blue', 'orange', 'purple']
-  const colorIndex = username.charCodeAt(0) % colors.length
-  return colors[colorIndex]
-}
+import type { User } from '../types'
+import { supabase } from '../lib/supabase'
+import { registerUser, loginUser, logoutUser, getCurrentUser } from '../services/supabaseService'
 
 /**
  * 认证状态接口
+ * 
+ * 现在使用 Supabase 认证系统，不再使用 localStorage
  */
 interface AuthState {
   // 当前登录用户
   currentUser: User | null
-  // 所有注册用户（本地存储）
-  users: UserAccount[]
   // 是否正在加载
   isLoading: boolean
   // 错误信息
   error: string | null
+  // 是否已初始化（加载过当前会话）
+  isInitialized: boolean
   
+  // 初始化认证状态（从 Supabase 加载当前会话）
+  initialize: () => Promise<void>
   // 注册
   register: (username: string, email: string, password: string) => Promise<boolean>
-  // 登录
-  login: (emailOrUsername: string, password: string) => Promise<boolean>
+  // 登录（现在只支持邮箱登录）
+  login: (email: string, password: string) => Promise<boolean>
   // 退出登录
-  logout: () => void
+  logout: () => Promise<void>
   // 更新用户信息
   updateProfile: (updates: Partial<Pick<User, 'username' | 'avatar'>>) => void
   // 清除错误
   clearError: () => void
-  // 检查用户名是否存在
-  isUsernameTaken: (username: string) => boolean
-  // 检查邮箱是否存在
-  isEmailTaken: (email: string) => boolean
 }
 
 /**
- * 用户认证状态管理
- * 使用 Zustand 和 localStorage 持久化
+ * 用户认证状态管理（Supabase 版本）
+ * 
+ * 变化：
+ * 1. 不再使用 localStorage 存储用户密码
+ * 2. 认证逻辑交给 Supabase 处理（更安全）
+ * 3. 只持久化当前用户信息
+ * 4. 登录只支持邮箱（Supabase 标准）
  */
 export const useAuthBloc = create<AuthState>()(
   persist(
     (set, get) => ({
       currentUser: null,
-      users: [],
       isLoading: false,
       error: null,
+      isInitialized: false,
+
+      // 初始化：从 Supabase 加载当前会话
+      initialize: async () => {
+        if (get().isInitialized) return
+        
+        set({ isLoading: true })
+        
+        try {
+          const user = await getCurrentUser()
+          set({ 
+            currentUser: user, 
+            isLoading: false, 
+            isInitialized: true 
+          })
+        } catch (error) {
+          console.error('初始化认证失败:', error)
+          set({ 
+            currentUser: null, 
+            isLoading: false, 
+            isInitialized: true 
+          })
+        }
+      },
 
       // 注册新用户
       register: async (username: string, email: string, password: string): Promise<boolean> => {
         set({ isLoading: true, error: null })
 
-        // 验证用户名
+        // 前端验证（减少不必要的 API 调用）
         if (username.length < 2 || username.length > 20) {
           set({ isLoading: false, error: '用户名长度需要在 2-20 个字符之间' })
           return false
         }
 
-        // 验证邮箱格式
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email)) {
           set({ isLoading: false, error: '请输入有效的邮箱地址' })
           return false
         }
 
-        // 验证密码长度
         if (password.length < 6) {
           set({ isLoading: false, error: '密码长度至少为 6 个字符' })
           return false
         }
 
-        // 检查用户名是否已存在
-        if (get().isUsernameTaken(username)) {
-          set({ isLoading: false, error: '用户名已被使用' })
+        // 调用 Supabase 注册
+        const result = await registerUser(username, email, password)
+        
+        if (!result.success) {
+          set({ isLoading: false, error: result.error || '注册失败' })
           return false
         }
 
-        // 检查邮箱是否已存在
-        if (get().isEmailTaken(email)) {
-          set({ isLoading: false, error: '邮箱已被注册' })
-          return false
-        }
-
-        try {
-          // 创建新用户
-          const id = generateId()
-          const passwordHash = await hashPassword(password)
-          const avatar = generateAvatar(username)
-          const createdAt = new Date().toISOString()
-
-          const newAccount: UserAccount = {
-            id,
-            username,
-            email,
-            passwordHash,
-            avatar,
-            createdAt,
-          }
-
-          const newUser: User = {
-            id,
-            username,
-            email,
-            avatar,
-            createdAt,
-          }
-
-          set((state) => ({
-            users: [...state.users, newAccount],
-            currentUser: newUser,
-            isLoading: false,
-            error: null,
-          }))
-
-          return true
-        } catch {
-          set({ isLoading: false, error: '注册失败，请重试' })
-          return false
-        }
+        // 注册成功，设置当前用户
+        set({ 
+          currentUser: result.user!, 
+          isLoading: false, 
+          error: null 
+        })
+        return true
       },
 
-      // 登录
-      login: async (emailOrUsername: string, password: string): Promise<boolean> => {
+      // 登录（只支持邮箱）
+      login: async (email: string, password: string): Promise<boolean> => {
         set({ isLoading: true, error: null })
 
-        const { users } = get()
+        // 调用 Supabase 登录
+        const result = await loginUser(email, password)
         
-        // 查找用户（支持邮箱或用户名登录）
-        const account = users.find(
-          (u) => u.email === emailOrUsername || u.username === emailOrUsername
-        )
-
-        if (!account) {
-          set({ isLoading: false, error: '用户不存在' })
+        if (!result.success) {
+          set({ isLoading: false, error: result.error || '登录失败' })
           return false
         }
 
-        try {
-          // 验证密码
-          const isValid = await verifyPassword(password, account.passwordHash)
-          
-          if (!isValid) {
-            set({ isLoading: false, error: '密码错误' })
-            return false
-          }
-
-          // 登录成功，设置当前用户
-          const user: User = {
-            id: account.id,
-            username: account.username,
-            email: account.email,
-            avatar: account.avatar,
-            createdAt: account.createdAt,
-          }
-
-          set({ currentUser: user, isLoading: false, error: null })
-          return true
-        } catch {
-          set({ isLoading: false, error: '登录失败，请重试' })
-          return false
-        }
+        // 登录成功，设置当前用户
+        set({ 
+          currentUser: result.user!, 
+          isLoading: false, 
+          error: null 
+        })
+        return true
       },
 
       // 退出登录
-      logout: () => {
-        set({ currentUser: null, error: null })
+      logout: async () => {
+        set({ isLoading: true })
+        
+        await logoutUser()
+        
+        // 清空进度数据
+        const { resetProgress } = require('./progressBloc').useProgressBloc.getState()
+        resetProgress()
+        
+        set({ 
+          currentUser: null, 
+          error: null, 
+          isLoading: false 
+        })
       },
 
-      // 更新用户信息
+      // 更新用户信息（暂时只更新本地状态，后续可以同步到 Supabase）
       updateProfile: (updates: Partial<Pick<User, 'username' | 'avatar'>>) => {
-        const { currentUser, users } = get()
+        const { currentUser } = get()
         
         if (!currentUser) return
 
-        // 更新当前用户
         const updatedUser = { ...currentUser, ...updates }
+        set({ currentUser: updatedUser })
         
-        // 更新用户列表中对应的账户
-        const updatedUsers = users.map((u) =>
-          u.id === currentUser.id ? { ...u, ...updates } : u
-        )
-
-        set({ currentUser: updatedUser, users: updatedUsers })
+        // TODO: 同步到 Supabase profiles 表
       },
 
       // 清除错误
       clearError: () => {
         set({ error: null })
       },
-
-      // 检查用户名是否已存在
-      isUsernameTaken: (username: string): boolean => {
-        return get().users.some((u) => u.username.toLowerCase() === username.toLowerCase())
-      },
-
-      // 检查邮箱是否已存在
-      isEmailTaken: (email: string): boolean => {
-        return get().users.some((u) => u.email.toLowerCase() === email.toLowerCase())
-      },
     }),
     {
       name: 'android-learn-auth',
       partialize: (state) => ({
+        // 只持久化当前用户信息，用于快速恢复 UI 状态
+        // 真实认证状态由 Supabase 会话管理
         currentUser: state.currentUser,
-        users: state.users,
       }),
     }
   )

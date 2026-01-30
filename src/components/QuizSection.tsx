@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { CheckCircle, XCircle, Loader2, Brain, RefreshCw, ChevronRight, Award, AlertTriangle, Sparkles, AlertCircle } from 'lucide-react'
 import { useThemeBloc } from '../blocs/themeBloc'
+import { useAuthBloc } from '../blocs/authBloc'
 import { 
   generateQuiz, 
   calculateQuizResult, 
@@ -10,6 +11,7 @@ import {
   QuizResult, 
   QuizHistory
 } from '../services/aiService'
+import { saveQuizHistory, loadQuizHistory } from '../services/supabaseService'
 
 interface QuizSectionProps {
   lessonId: string           // 课程 ID，用于保存历史
@@ -21,9 +23,11 @@ interface QuizSectionProps {
 /**
  * AI 小测验内嵌组件
  * 支持多种题型、错题重测、动态题目数量
+ * 测验历史保存到 Supabase（用户登录后）
  */
 export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }: QuizSectionProps) {
   const theme = useThemeBloc((state) => state.theme)
+  const { currentUser } = useAuthBloc()
   const isDark = theme === 'dark'
 
   // 状态管理
@@ -38,36 +42,53 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
   
   // 测验历史记录（保存错题和已出过的题）
   const [quizHistory, setQuizHistory] = useState<QuizHistory | null>(null)
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false)
 
-  // 从 localStorage 加载历史记录
-  const loadHistory = useCallback((): QuizHistory | null => {
+  // 从云端加载历史记录（纯云端版本）
+  const loadHistory = useCallback(async (): Promise<QuizHistory | null> => {
     try {
-      const key = `quiz-history-${lessonId}`
-      const saved = localStorage.getItem(key)
-      if (saved) {
-        const data = JSON.parse(saved)
-        return new QuizHistory(
-          data.lessonId,
-          data.questions || [],
-          data.wrongQuestions || [],
-          data.attemptCount || 0
-        )
+      // 用户必须登录才能使用测验功能
+      if (!currentUser) {
+        console.warn('用户未登录，无法加载测验历史')
+        return null
       }
+      
+      // 从 Supabase 加载
+      const cloudHistory = await loadQuizHistory(currentUser.id, lessonId)
+      return cloudHistory
     } catch (e) {
       console.error('加载测验历史失败:', e)
+      return null
     }
-    return null
-  }, [lessonId])
+  }, [lessonId, currentUser])
 
-  // 保存历史记录到 localStorage
-  const saveHistory = useCallback((history: QuizHistory) => {
+  // 保存历史记录到云端（纯云端版本）
+  const saveHistory = useCallback(async (history: QuizHistory) => {
     try {
-      const key = `quiz-history-${lessonId}`
-      localStorage.setItem(key, JSON.stringify(history))
+      // 用户必须登录才能保存
+      if (!currentUser) {
+        console.warn('用户未登录，无法保存测验历史')
+        return
+      }
+      
+      // 保存到 Supabase
+      await saveQuizHistory(currentUser.id, lessonId, history)
     } catch (e) {
       console.error('保存测验历史失败:', e)
     }
-  }, [lessonId])
+  }, [lessonId, currentUser])
+
+  // 组件加载时，预加载历史记录
+  useEffect(() => {
+    if (!isHistoryLoaded) {
+      loadHistory().then(history => {
+        if (history) {
+          setQuizHistory(history)
+        }
+        setIsHistoryLoaded(true)
+      })
+    }
+  }, [loadHistory, isHistoryLoaded])
 
   // 开始测验
   const startQuiz = async (isRetry: boolean = false) => {
@@ -80,8 +101,12 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
     setResult(null)
 
     try {
-      // 加载历史记录
-      const history = loadHistory()
+      // 加载历史记录（如果还没加载）
+      let history = quizHistory
+      if (!isHistoryLoaded) {
+        history = await loadHistory()
+        setIsHistoryLoaded(true)
+      }
       
       // 如果是重测且有错题，传递历史记录
       const historyToUse = isRetry && history && history.wrongQuestions.length > 0 

@@ -14,7 +14,7 @@ export function LoginPage() {
   const isDark = theme === 'dark'
 
   // 表单状态
-  const [emailOrUsername, setEmailOrUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
@@ -33,7 +33,7 @@ export function LoginPage() {
   // 处理提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const success = await login(emailOrUsername, password)
+    const success = await login(email, password)
     if (success) {
       navigate('/profile')
     }
@@ -133,10 +133,10 @@ export function LoginPage() {
 
           {/* 表单 */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            {/* 邮箱或用户名 */}
+            {/* 邮箱 */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
-                邮箱或用户名
+                邮箱
               </label>
               <div className="relative">
                 <Mail 
@@ -144,10 +144,10 @@ export function LoginPage() {
                   className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-dark-text-muted' : 'text-light-text-muted'}`} 
                 />
                 <input
-                  type="text"
-                  value={emailOrUsername}
-                  onChange={(e) => setEmailOrUsername(e.target.value)}
-                  placeholder="输入邮箱或用户名"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="输入你的邮箱"
                   required
                   className={`
                     w-full pl-12 pr-4 py-3 sm:py-3.5 rounded-full text-base sm:text-sm transition-all duration-200

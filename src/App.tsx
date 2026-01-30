@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useThemeBloc } from './blocs/themeBloc'
+import { useAuthBloc } from './blocs/authBloc'
+import { useProgressBloc } from './blocs/progressBloc'
 import { BackgroundDecoration } from './components/BackgroundDecoration'
 import { Navbar } from './components/Navbar'
 import { BottomNav } from './components/BottomNav'
@@ -115,15 +117,42 @@ function AppContent() {
 /**
  * 主应用组件
  * 使用 React Router 实现页面路由
+ * 初始化 Supabase 认证状态和加载云端进度
  */
 function App() {
   const theme = useThemeBloc((state) => state.theme)
+  const { initialize, isInitialized, currentUser } = useAuthBloc()
+  const { loadFromCloud } = useProgressBloc()
+
+  // 初始化认证状态（恢复 Supabase 会话）
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+
+  // 用户登录后，加载云端进度
+  useEffect(() => {
+    if (currentUser) {
+      loadFromCloud(currentUser.id)
+    }
+  }, [currentUser, loadFromCloud])
 
   // 初始化时同步主题到 body
   useEffect(() => {
     document.body.classList.remove('dark', 'light')
     document.body.classList.add(theme)
   }, [theme])
+
+  // 等待认证初始化完成
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-accent-green border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-dark-text-secondary">初始化中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <BrowserRouter>
