@@ -46,11 +46,12 @@ yarn build
 | 功能 | 页面/组件 | 说明 |
 |------|-----------|------|
 | 主题切换 | `ThemeToggle.tsx` | 支持深色/浅色模式切换，状态持久化 |
-| 用户认证 | `LoginPage.tsx` / `RegisterPage.tsx` / `authBloc.ts` | 独立登录注册页面，本地存储用户数据 |
-| **AI 小测验** | `QuizSection.tsx` / `aiService.ts` | **多题型（单选/多选/判断/填空）、错题重测、动态题量、知识点全覆盖** |
-| **Kotlin 在线测试** | `KotlinPlayground.tsx` / `Navbar.tsx` | **课程页面导航栏显示"在线测验"按钮，点击打开代码编辑器** |
+| **后端集成** | `supabaseService.ts` / Supabase | **使用 Supabase 云端存储，用户认证、进度同步、测验历史** |
+| 用户认证 | `LoginPage.tsx` / `RegisterPage.tsx` / `authBloc.ts` | 独立登录注册页面，Supabase JWT 认证 |
+| **AI 小测验** | `QuizSection.tsx` / `aiService.ts` | **多题型（单选/多选/判断/填空）、错题重测、云端存储** |
+| **Kotlin 在线测试** | `KotlinPlayground.tsx` / `Navbar.tsx` | **课程页面导航栏"在线测验"按钮，弹窗代码编辑器** |
 | **AI 文本分析** | `AiTextAssistant.tsx` | **选中文本后显示 AI 分析按钮，支持解释代码含义和多轮追问** |
-| **AI 页面助手** | `AiPageAssistant.tsx` | **右下角浮动按钮，基于当前页面上下文的智能对话助手** |
+| **AI 页面助手** | `AiPageAssistant.tsx` | **基于当前页面上下文的智能对话助手** |
 | 首页 | `HomePage.tsx` | 学习路径总览、当前进度、实战项目推荐 |
 | 学习列表 | `LearnPage.tsx` | 分阶段展示所有课程，显示完成状态 |
 | 课程详情 | `LessonPage.tsx` | 课程内容渲染，支持代码高亮、提示框、表格、AI 测验入口 |
@@ -58,7 +59,7 @@ yarn build
 | 项目详情 | `ProjectDetailPage.tsx` | 项目介绍、功能列表、开发步骤 |
 | 资源中心 | `ResourcesPage.tsx` | 精选官方文档、开源项目、视频教程 |
 | 个人中心 | `ProfilePage.tsx` | 用户信息、学习统计、成就徽章、账户管理 |
-| 进度追踪 | `progressBloc.ts` | 学习进度本地持久化，连续天数统计 |
+| 进度追踪 | `progressBloc.ts` | 学习进度云端同步，连续天数统计 |
 | 导航系统 | `Navbar.tsx` / `BottomNav.tsx` | React Router 路由导航，用户菜单 |
 | 背景装饰 | `BackgroundDecoration.tsx` | 渐变光效和网格背景 |
 
@@ -117,11 +118,22 @@ yarn build
 
 ## 🛠️ 技术栈
 
-- **前端框架**: React 18 + TypeScript
-- **UI框架**: Tailwind CSS
-- **状态管理**: Zustand (with persist)
-- **图标库**: Lucide React
-- **构建工具**: Vite 6
+### 前端
+- **框架**: React 18 + TypeScript
+- **UI**: Tailwind CSS
+- **状态管理**: Zustand
+- **路由**: React Router DOM v6
+- **图标**: Lucide React
+- **构建**: Vite 6
+
+### 后端
+- **BaaS**: Supabase（PostgreSQL + Auth + Realtime）
+- **认证**: JWT（Supabase Auth）
+- **存储**: 云端数据库（RLS 行级安全）
+
+### AI 服务
+- **测验生成**: Cerebras API (qwen-3-32b)
+- **代码运行**: Kotlin Playground API
 
 ---
 
@@ -131,18 +143,18 @@ yarn build
 android-learn/
 ├── src/
 │   ├── components/          # 通用组件
-│   │   ├── AiPageAssistant.tsx       # AI 页面助手（右下角按钮）
+│   │   ├── AiPageAssistant.tsx       # AI 页面助手
 │   │   ├── AiTextAssistant.tsx       # AI 文本分析（选中触发）
 │   │   ├── BackgroundDecoration.tsx  # 背景装饰
 │   │   ├── BottomNav.tsx             # 底部导航
 │   │   ├── CodeBlock.tsx             # 代码块显示
 │   │   ├── Icon.tsx                  # Lucide 图标映射组件
-│   │   ├── KotlinPlayground.tsx      # Kotlin 在线测试
+│   │   ├── KotlinPlayground.tsx      # Kotlin 在线测试（导航栏按钮）
 │   │   ├── Logo.tsx                  # Logo 组件
 │   │   ├── Navbar.tsx                # 顶部导航栏
 │   │   ├── PathCard.tsx              # 学习路径卡片
 │   │   ├── ProjectCard.tsx           # 项目卡片
-│   │   ├── QuizSection.tsx           # AI 小测验
+│   │   ├── QuizSection.tsx           # AI 小测验（云端存储）
 │   │   └── ThemeToggle.tsx           # 主题切换按钮
 │   ├── pages/               # 页面组件
 │   │   ├── HomePage.tsx              # 首页
@@ -161,7 +173,8 @@ android-learn/
 │   │   ├── learningBloc.ts           # 学习数据管理
 │   │   └── progressBloc.ts           # 进度追踪管理
 │   ├── services/            # 服务层
-│   │   └── aiService.ts              # AI API 调用服务
+│   │   ├── aiService.ts              # AI API 调用服务（Cerebras）
+│   │   └── supabaseService.ts        # Supabase 数据库服务
 │   ├── types/               # 类型定义
 │   │   └── index.ts                  # 类型/类定义
 │   ├── App.tsx              # 主应用组件

@@ -97,7 +97,10 @@ CREATE TABLE IF NOT EXISTS quiz_history (
   wrong_questions jsonb DEFAULT '[]'::jsonb,
   attempt_count integer DEFAULT 0,
   last_attempt_date timestamptz DEFAULT now(),
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  
+  -- 唯一约束：每个用户在每个课程只有一条测验记录
+  CONSTRAINT quiz_history_user_lesson_unique UNIQUE (user_id, lesson_id)
 );
 
 -- 创建索引（加速查询）

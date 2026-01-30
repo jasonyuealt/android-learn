@@ -1,127 +1,100 @@
-# Supabase 配置操作指南
+# 🚀 Supabase 后端集成 - 快速指南
 
-## 第一步：创建 Supabase 项目
+## 当前状态
 
-1. **打开浏览器访问**: https://supabase.com
-
-2. **登录账号**:
-   - 点击右上角 "Sign In"
-   - 推荐使用 GitHub 账号登录（更快）
-
-3. **创建新项目**:
-   - 点击 "New Project"
-   - 填写项目信息：
-     - **Organization**: 选择或创建一个组织
-     - **Name**: `android-learn`
-     - **Database Password**: 设置一个强密码（保存好这个密码！）
-     - **Region**: 选择 `Singapore (Southeast Asia)` 或 `Tokyo (Northeast Asia)`（离中国最近）
-     - **Pricing Plan**: 选择 `Free` 免费版（已足够使用）
-
-4. **等待初始化**:
-   - 等待 2-3 分钟，项目创建中...
-   - 完成后会进入项目控制台
+✅ **已完成**
+- Supabase 项目已创建
+- 数据表已初始化（profiles, progress, quiz_history）
+- 前端已连接 Supabase
+- 纯云端存储（无 localStorage）
 
 ---
 
-## 第二步：执行 SQL 脚本创建数据表
+## 📝 待执行的修复
 
-1. **进入 SQL Editor**:
-   - 在左侧菜单找到 🔧 "SQL Editor"
-   - 点击进入
+### 问题：测验保存失败（缺少唯一约束）
 
-2. **创建新查询**:
-   - 点击 "+ New query" 按钮
+**执行步骤：**
 
-3. **复制 SQL 脚本**:
-   - 打开项目中的 `/supabase/init.sql` 文件
-   - 复制全部内容（约 200 行）
-
-4. **粘贴并执行**:
-   - 粘贴到 SQL Editor 中
-   - 点击右下角 "Run" 按钮（或按 Ctrl+Enter / Cmd+Enter）
-
-5. **检查执行结果**:
-   - 如果成功，会显示 "Success. No rows returned"
-   - 如果报错，请查看错误信息（可能是重复执行，可以忽略）
-
----
-
-## 第三步：获取 API 密钥
-
-1. **进入项目设置**:
-   - 点击左下角 ⚙️ "Project Settings"
-   - 点击左侧 "API" 选项卡
-
-2. **找到两个重要信息**:
-   
-   **① Project URL**（项目地址）
+1. **打开 Supabase 控制台**
    ```
-   https://abcdefghijklmn.supabase.co
+   https://supabase.com → 你的项目 → SQL Editor
+   ```
+
+2. **执行修复 SQL**
+   
+   复制文件 `/supabase/fix-quiz-history-constraint.sql` 的内容，粘贴到 SQL Editor 并运行：
+
+   ```sql
+   -- 删除可能的重复数据
+   DELETE FROM quiz_history a
+   USING quiz_history b
+   WHERE a.id < b.id 
+     AND a.user_id = b.user_id 
+     AND a.lesson_id = b.lesson_id;
+
+   -- 添加唯一约束
+   ALTER TABLE quiz_history
+   ADD CONSTRAINT quiz_history_user_lesson_unique 
+   UNIQUE (user_id, lesson_id);
+   ```
+
+3. **验证修复**
+   
+   运行验证查询：
+   ```sql
+   SELECT constraint_name, constraint_type
+   FROM information_schema.table_constraints
+   WHERE table_name = 'quiz_history';
    ```
    
-   **② anon public**（公开密钥）
-   ```
-   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh...（很长的字符串）
-   ```
+   应该看到 `quiz_history_user_lesson_unique | UNIQUE`
 
-3. **复制密钥**:
-   - 点击每个密钥右侧的复制按钮 📋
+4. **刷新应用页面**，重新测试测验功能
 
 ---
 
-## 第四步：配置项目环境变量
+## 🎯 测试清单
 
-1. **打开项目中的 `.env.local` 文件**
-
-2. **替换占位符**:
-   ```bash
-   # 将这两行的内容替换为你刚才复制的值
-   VITE_SUPABASE_URL=https://你的项目ID.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.你的密钥...
-   ```
-
-3. **保存文件**
+- [ ] 用户注册登录正常
+- [ ] 学习进度保存到云端（查看 Supabase `progress` 表）
+- [ ] 完成课程后数据同步
+- [ ] 做测验能正常保存（查看 `quiz_history` 表）
+- [ ] 错题重测功能正常
+- [ ] 登出再登录，数据恢复
 
 ---
 
-## 第五步：验证配置
+## 📂 项目文件说明
 
-1. **重启开发服务器**（重要！环境变量需要重启才能生效）:
-   ```bash
-   # 停止当前运行的服务器（Ctrl+C）
-   # 然后重新启动
-   yarn dev
-   ```
-
-2. **检查数据表**:
-   - 在 Supabase 控制台，点击左侧 📊 "Table Editor"
-   - 你应该能看到 3 个表：
-     - `profiles`
-     - `progress`
-     - `quiz_history`
+```
+supabase/
+├── init.sql                           # 完整的数据库初始化脚本
+├── fix-quiz-history-constraint.sql    # 修复测验表约束（执行一次后可删除）
+└── SETUP_GUIDE.md                     # 本文件
+```
 
 ---
 
-## ✅ 完成！
+## 🔧 常见问题
 
-现在 Supabase 已经配置好了，接下来我会：
-1. 修改现有的 `authBloc.ts`，连接到 Supabase
-2. 修改 `progressBloc.ts`，同步数据到云端
-3. 测试注册、登录、进度保存功能
+**Q: 为什么测验保存失败？**
+A: 缺少 `(user_id, lesson_id)` 唯一约束，执行修复 SQL 即可。
+
+**Q: 如何查看保存的数据？**
+A: Supabase 控制台 → Table Editor → 选择对应的表。
+
+**Q: 未登录能使用吗？**
+A: 不能。现在是纯云端模式，必须登录才能保存进度和测验。
+
+**Q: 如何清除测试数据？**
+A: Supabase Table Editor → 右键表格 → Delete rows。
 
 ---
 
-## 💡 常见问题
+## 📞 需要帮助？
 
-**Q: 密钥会泄露吗？**
-A: `anon public` 密钥是设计为可以暴露在前端的，Supabase 通过行级安全策略（RLS）保护数据。
-
-**Q: 免费版有什么限制？**
-A: 
-- 数据库大小：500 MB
-- 带宽：2 GB/月
-- API 请求：无限制
-- 完全够开发和小规模使用
-
-**Q: 数据能导出吗？**
-A: 可以，Supabase 使用标准 PostgreSQL，可以随时导出数据。
+如果遇到问题：
+1. 打开浏览器控制台 (F12) 查看错误
+2. 检查 Supabase 表结构是否正确
+3. 验证 `.env.local` 配置是否正确

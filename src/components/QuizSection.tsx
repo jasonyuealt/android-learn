@@ -78,9 +78,9 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
     }
   }, [lessonId, currentUser])
 
-  // 组件加载时，预加载历史记录
+  // 组件加载时，预加载历史记录（等用户加载完成）
   useEffect(() => {
-    if (!isHistoryLoaded) {
+    if (!isHistoryLoaded && currentUser) {
       loadHistory().then(history => {
         if (history) {
           setQuizHistory(history)
@@ -88,7 +88,7 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
         setIsHistoryLoaded(true)
       })
     }
-  }, [loadHistory, isHistoryLoaded])
+  }, [loadHistory, isHistoryLoaded, currentUser])
 
   // 开始测验
   const startQuiz = async (isRetry: boolean = false) => {
@@ -481,13 +481,53 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
               AI 将根据本课「{lessonTitle}」的内容智能生成测验题目，
               包含单选、多选、判断、填空等多种题型
             </p>
-            <button
-              onClick={() => startQuiz(false)}
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
-            >
-              <Brain size={18} />
-              开始测验
-            </button>
+            
+            {/* 错题提示 */}
+            {quizHistory && quizHistory.wrongQuestions.length > 0 && (
+              <div className={`
+                max-w-md mx-auto mb-6 p-4 rounded-2xl border-2
+                ${isDark 
+                  ? 'bg-accent-orange/5 border-accent-orange/20' 
+                  : 'bg-accent-orange/10 border-accent-orange/30'
+                }
+              `}>
+                <div className="flex items-center gap-2 justify-center mb-2">
+                  <AlertCircle className="w-5 h-5 text-accent-orange" />
+                  <span className="font-medium text-accent-orange">
+                    上次测验有 {quizHistory.wrongQuestions.length} 道错题
+                  </span>
+                </div>
+                <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                  建议先复习相关知识点，或点击"针对错题再测"重点练习
+                </p>
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => startQuiz(false)}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
+              >
+                <Brain size={18} />
+                {quizHistory && quizHistory.wrongQuestions.length > 0 ? '全新题目' : '开始测验'}
+              </button>
+              
+              {quizHistory && quizHistory.wrongQuestions.length > 0 && (
+                <button
+                  onClick={() => startQuiz(true)}
+                  className={`
+                    inline-flex items-center gap-2 px-8 py-3 rounded-full font-medium cursor-pointer transition-all duration-200
+                    ${isDark 
+                      ? 'bg-accent-orange/15 text-accent-orange hover:bg-accent-orange/20' 
+                      : 'bg-accent-orange/10 text-accent-orange hover:bg-accent-orange/20'
+                    }
+                  `}
+                >
+                  <RefreshCw size={18} />
+                  针对错题再测
+                </button>
+              )}
+            </div>
           </div>
         )}
 

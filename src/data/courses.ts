@@ -151,7 +151,7 @@ export const courseData: Phase[] = [
               },
               {
                 type: 'tip',
-                content: '点击页面右下角的「在线测试」按钮，可以把代码复制进去运行，亲自验证输出结果。'
+                content: '想要运行代码验证结果？点击导航栏的「在线测验」按钮，可以在弹窗中测试 Kotlin 代码。'
               }
             ]
           },

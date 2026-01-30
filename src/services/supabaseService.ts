@@ -11,7 +11,7 @@
 
 import { supabase } from '../lib/supabase'
 import type { User } from '../types'
-import type { QuizQuestion, WrongQuestion, QuizHistory } from './aiService'
+import { QuizHistory } from './aiService'
 
 // ========================================
 // 用户认证相关
