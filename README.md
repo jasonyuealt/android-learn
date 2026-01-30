@@ -379,3 +379,137 @@ android-learn/
 - [ ] 云端数据同步
 - [ ] 搜索功能
 - [ ] 笔记功能
+
+---
+
+## 🚀 部署指南
+
+### 一、环境变量配置
+
+#### 本地开发 (`.env.local`)
+
+```env
+# Supabase 配置（前端使用）
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# AI API 配置（开发环境 - 带 VITE_ 前缀）
+VITE_AI_API_BASE=https://your-ai-api.com/v1
+VITE_AI_API_KEY=your_dev_key
+VITE_AI_MODEL=qwen-3-32b
+
+# AI API 配置（生产环境 - 无 VITE_ 前缀，后端使用）
+AI_API_BASE=https://your-ai-api.com/v1
+AI_API_KEY=your_prod_key
+AI_MODEL=qwen-3-32b
+```
+
+**重要说明**：
+- **VITE_** 前缀的变量会暴露到前端（Supabase anon key 是公开的，安全）
+- **无前缀**的 AI 变量只在后端使用（通过 Vercel Serverless Functions 代理）
+- 开发环境使用带 VITE_ 前缀的 AI 变量直接调用 API
+- 生产环境使用无前缀的 AI 变量，通过 `/api/ai-chat` 后端代理
+
+#### 环境自动切换
+
+代码会根据 `import.meta.env.DEV` 自动判断：
+- **开发环境** (`npm run dev`)：直接调用 AI API
+- **生产环境** (Vercel)：通过后端代理调用（key 完全隐藏）
+
+### 二、Vercel 部署
+
+#### 1. 连接 Git 仓库
+
+访问 [Vercel Dashboard](https://vercel.com/new)，导入 GitHub 仓库：
+```
+jasonyuealt/android-learn
+```
+
+#### 2. 配置项目
+
+- **Framework Preset**: Vite
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `npm install`
+
+#### 3. 配置环境变量
+
+在 Vercel Dashboard → Settings → Environment Variables 添加：
+
+| 变量名 | 值 | 环境 |
+|--------|-----|------|
+| `VITE_SUPABASE_URL` | `https://your-project.supabase.co` | Production, Preview, Development |
+| `VITE_SUPABASE_ANON_KEY` | `your_anon_key` | Production, Preview, Development |
+| `AI_API_BASE` | `https://your-ai-api.com/v1` | Production, Preview, Development |
+| `AI_API_KEY` | `your_key` | Production, Preview, Development |
+| `AI_MODEL` | `qwen-3-32b` | Production, Preview, Development |
+
+⚠️ **关键**：AI 相关变量**不要**加 `VITE_` 前缀！
+
+#### 4. 配置自动部署
+
+**方式一：通过 Vercel Dashboard**
+
+1. 进入项目 → Settings → Git
+2. **Production Branch**：设置为 `main`（推送到 main 自动部署生产环境）
+3. **Deploy Hooks**（可选）：可以设置其他分支的自动部署
+
+**方式二：多分支部署策略**
+
+- **main 分支** → 自动部署到生产环境（`your-app.vercel.app`）
+- **develop 分支** → 自动部署到预览环境（`your-app-git-develop.vercel.app`）
+- **其他分支** → 每次推送自动创建预览部署
+
+**推荐配置**：
+```bash
+# 本地开发
+git checkout develop
+# ... 开发完成后
+
+# 推送到 develop 分支（自动生成预览部署）
+git push origin develop
+
+# 测试通过后合并到 main（自动部署到生产）
+git checkout main
+git merge develop
+git push origin main
+```
+
+#### 5. 部署完成
+
+- **生产环境**：`https://your-project.vercel.app`
+- **预览环境**：每次推送自动生成唯一 URL
+
+### 三、验证部署
+
+部署成功后检查：
+- ✅ 访问首页正常
+- ✅ Supabase 认证功能正常
+- ✅ AI 功能正常（测验生成、页面助手、文本分析）
+- ✅ 浏览器开发者工具搜索 AI API key 无结果
+- ✅ Network 面板显示调用 `/api/ai-chat` 而非直接调用 AI API
+
+### 四、常见问题
+
+**Q: 本地开发 AI 功能 404？**
+
+A: 确保 `.env.local` 中有 **VITE_** 前缀的 AI 变量。
+
+**Q: 生产环境 AI 功能不工作？**
+
+A: 检查 Vercel 环境变量配置，确保 AI 变量**没有** VITE_ 前缀。
+
+**Q: 如何回滚部署？**
+
+A: Vercel Dashboard → Deployments → 选择之前的版本 → Promote to Production
+
+**Q: 如何禁用自动部署？**
+
+A: Settings → Git → 取消勾选 "Automatically expose System Environment Variables"
+
+---
+
+## 📚 技术文档
+
+- **Supabase 配置**：见 `supabase/SETUP_GUIDE.md`
+- **后端 API**：见 `api/ai-chat.ts`（Vercel Serverless Function）

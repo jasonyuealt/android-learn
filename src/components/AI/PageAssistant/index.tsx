@@ -17,10 +17,11 @@ interface Message {
   content: string
 }
 
-// AI API 配置
-const API_BASE = 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
-const API_KEY = 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-const MODEL = 'qwen-3-32b'
+// 开发环境判断
+const isDev = import.meta.env.DEV
+const DEV_API_BASE = import.meta.env.VITE_AI_API_BASE || 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
+const DEV_API_KEY = import.meta.env.VITE_AI_API_KEY || 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
+const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-32b'
 
 export function AiPageAssistant({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [isVisible, setIsVisible] = useState(false)
@@ -75,7 +76,7 @@ export function AiPageAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
     }, 200)
   }
 
-  // 流式调用 AI API
+  // 流式调用 AI API（通过后端代理）
   const callAIStream = async (chatMessages: Message[]) => {
     setIsLoading(true)
     setTargetContent('')
@@ -84,19 +85,7 @@ export function AiPageAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
     
     abortControllerRef.current = new AbortController()
     
-    try {
-      const response = await fetch(`${API_BASE}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            {
-              role: 'system',
-              content: `你是一个专业的 Android/Kotlin 开发专家助手。
+    const systemPrompt = `你是一个专业的 Android/Kotlin 开发专家助手。
 
 当前页面信息：
 - 页面类型：${pageContext.type}
@@ -111,18 +100,47 @@ ${pageContext.content}
 4. 代码示例用 \`\`\`kotlin 包裹
 5. 使用中文回答
 6. 不要使用 <think> 标签`
-            },
-            ...chatMessages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            }))
-          ],
-          max_tokens: 1500,
-          temperature: 0.7,
-          stream: true,
-        }),
-        signal: abortControllerRef.current.signal,
-      })
+    
+    try {
+      let response: Response
+      
+      if (isDev) {
+        // 开发环境：直接调用 AI API
+        response = await fetch(`${DEV_API_BASE}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DEV_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: DEV_MODEL,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...chatMessages
+            ],
+            max_tokens: 1500,
+            temperature: 0.7,
+            stream: true
+          }),
+          signal: abortControllerRef.current.signal,
+        })
+      } else {
+        // 生产环境：调用后端 API（Vercel Serverless Function）
+        response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: chatMessages,
+            systemPrompt: systemPrompt,
+            maxTokens: 1500,
+            temperature: 0.7,
+            stream: true
+          }),
+          signal: abortControllerRef.current.signal,
+        })
+      }
 
       if (!response.ok) {
         throw new Error('AI 请求失败')

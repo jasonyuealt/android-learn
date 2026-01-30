@@ -3,10 +3,13 @@
  * 支持多种题型、错题重测、动态题目数量
  */
 
-// API 配置
-const API_BASE = 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
-const API_KEY = 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-const MODEL = 'qwen-3-32b'
+// 开发环境判断
+const isDev = import.meta.env.DEV
+
+// AI API 配置（仅开发环境使用）
+const DEV_API_BASE = import.meta.env.VITE_AI_API_BASE || 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
+const DEV_API_KEY = import.meta.env.VITE_AI_API_KEY || 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
+const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-32b'
 
 // 题目类型枚举
 export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false' | 'fill_blank'
@@ -171,25 +174,40 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
 - 只返回 JSON，不要有其他内容`
 
   try {
-    const response = await fetch(`${API_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000  // 增加 token 限制以支持更多题目
+    let response: Response
+    
+    if (isDev) {
+      // 开发环境：直接调用 AI API
+      response = await fetch(`${DEV_API_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEV_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: DEV_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        })
       })
-    })
+    } else {
+      // 生产环境：调用后端 API（Vercel Serverless Function）
+      response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          maxTokens: 4000,
+          temperature: 0.7,
+          stream: false
+        })
+      })
+    }
 
     if (!response.ok) {
       throw new Error(`API 请求失败: ${response.status}`)

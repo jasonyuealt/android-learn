@@ -16,10 +16,11 @@ interface Message {
   content: string
 }
 
-// AI API 配置
-const API_BASE = 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
-const API_KEY = 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-const MODEL = 'qwen-3-32b'
+// 开发环境判断
+const isDev = import.meta.env.DEV
+const DEV_API_BASE = import.meta.env.VITE_AI_API_BASE || 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
+const DEV_API_KEY = import.meta.env.VITE_AI_API_KEY || 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
+const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-32b'
 
 export function AiTextAssistant() {
   const [isOpen, setIsOpen] = useState(false)
@@ -85,7 +86,7 @@ export function AiTextAssistant() {
     }, 200)
   }
 
-  // 流式调用 AI API
+  // 流式调用 AI API（通过后端代理）
   const callAIStream = async (chatMessages: Message[]) => {
     setIsLoading(true)
     setTargetContent('')
@@ -94,19 +95,7 @@ export function AiTextAssistant() {
     
     abortControllerRef.current = new AbortController()
     
-    try {
-      const response = await fetch(`${API_BASE}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            {
-              role: 'system',
-              content: `你是一个专业的 Android/Kotlin 开发助手。用户正在学习 Android 开发，会选中一些代码或文本让你解释。
+    const systemPrompt = `你是一个专业的 Android/Kotlin 开发助手。用户正在学习 Android 开发，会选中一些代码或文本让你解释。
 
 请按以下顺序和格式回答（使用中文）：
 
@@ -126,18 +115,47 @@ export function AiTextAssistant() {
 - 回答简洁实用，每个部分 2-3 句话即可
 - 代码示例用 \`\`\`kotlin 包裹
 - 不要使用 <think> 标签`
-            },
-            ...chatMessages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            }))
-          ],
-          max_tokens: 1000,
-          temperature: 0.7,
-          stream: true,
-        }),
-        signal: abortControllerRef.current.signal,
-      })
+    
+    try {
+      let response: Response
+      
+      if (isDev) {
+        // 开发环境：直接调用 AI API
+        response = await fetch(`${DEV_API_BASE}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DEV_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: DEV_MODEL,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...chatMessages
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+            stream: true
+          }),
+          signal: abortControllerRef.current.signal,
+        })
+      } else {
+        // 生产环境：调用后端 API（Vercel Serverless Function）
+        response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: chatMessages,
+            systemPrompt: systemPrompt,
+            maxTokens: 1000,
+            temperature: 0.7,
+            stream: true
+          }),
+          signal: abortControllerRef.current.signal,
+        })
+      }
 
       if (!response.ok) {
         throw new Error('AI 请求失败')

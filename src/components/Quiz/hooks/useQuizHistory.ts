@@ -47,6 +47,12 @@ export function useQuizHistory(lessonId: string) {
     }
   }, [lessonId, currentUser])
 
+  // 当 lessonId 改变时，重置加载状态
+  useEffect(() => {
+    setIsHistoryLoaded(false)
+    setQuizHistory(null)
+  }, [lessonId])
+
   // 组件加载时，预加载历史记录（等用户加载完成）
   useEffect(() => {
     if (!isHistoryLoaded && currentUser) {

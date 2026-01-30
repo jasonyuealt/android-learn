@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '../types'
-import { supabase } from '../lib/supabase'
 import { registerUser, loginUser, logoutUser, getCurrentUser } from '../services/supabaseService'
 import { useProgressBloc } from './progressBloc'
 

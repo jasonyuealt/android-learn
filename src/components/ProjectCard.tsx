@@ -11,7 +11,7 @@ interface ProjectCardProps {
  * 项目卡片组件
  * 使用 Lucide 图标替代 Emoji
  */
-export function ProjectCard({ project, index }: ProjectCardProps) {
+export function ProjectCard({ project }: ProjectCardProps) {
   const theme = useThemeBloc((state) => state.theme)
   const isDark = theme === 'dark'
 

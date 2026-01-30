@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
-
 /**
  * 主题类型
  */
