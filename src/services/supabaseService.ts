@@ -258,6 +258,41 @@ export async function loadProgress(userId: string): Promise<{
   }
 }
 
+/**
+ * 清除用户的所有学习进度（重置功能）
+ * @param userId 用户 ID
+ */
+export async function clearAllProgress(userId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. 清除学习进度
+    const { error: progressError } = await supabase
+      .from('progress')
+      .delete()
+      .eq('user_id', userId)
+
+    if (progressError && progressError.code !== 'PGRST116') {
+      console.error('清除进度失败:', progressError)
+      return { success: false, error: progressError.message }
+    }
+
+    // 2. 清除测验历史
+    const { error: quizError } = await supabase
+      .from('quiz_history')
+      .delete()
+      .eq('user_id', userId)
+
+    if (quizError && quizError.code !== 'PGRST116') {
+      console.error('清除测验历史失败:', quizError)
+      return { success: false, error: quizError.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('清除进度异常:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 // ========================================
 // 测验历史相关
 // ========================================

@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useProgressBloc } from '../blocs/progressBloc'
 import { useAuthBloc } from '../blocs/authBloc'
 import { Icon } from '../components/Icon'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { getAllLessons } from '../data/courses'
-import { RotateCcw, LogIn, UserPlus, LogOut, Calendar, Mail } from 'lucide-react'
+import { clearAllProgress } from '../services/supabaseService'
+import { RotateCcw, LogIn, UserPlus, LogOut, Calendar, Mail, CheckCircle } from 'lucide-react'
 
 /**
  * 成就数据
@@ -25,9 +28,14 @@ const achievements = [
  */
 export function ProfilePage() {
   const theme = useThemeBloc((state) => state.theme)
-  const { getCompletedCount, streakDays, getTotalProgress } = useProgressBloc()
+  const { getCompletedCount, streakDays, getTotalProgress, resetProgress } = useProgressBloc()
   const { currentUser, logout } = useAuthBloc()
   const isDark = theme === 'dark'
+  
+  // 对话框状态
+  const [showResetDialog, setShowResetDialog] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
 
   const completedCount = getCompletedCount()
   const totalLessons = getAllLessons().length
@@ -44,11 +52,40 @@ export function ProfilePage() {
     return completedCount >= (achievement.threshold || 0)
   }
 
-  // 重置进度（危险操作）
-  const handleReset = () => {
-    if (window.confirm('确定要重置所有学习进度吗？此操作不可撤销！')) {
+  // 打开重置确认对话框
+  const handleResetClick = () => {
+    setShowResetDialog(true)
+  }
+
+  // 确认重置进度
+  const handleConfirmReset = async () => {
+    setIsResetting(true) // 开始 loading
+    try {
+      // 如果已登录，清除云端数据
+      if (currentUser) {
+        const result = await clearAllProgress(currentUser.id)
+        if (!result.success) {
+          console.error('清除云端数据失败:', result.error)
+          // 即使云端清除失败，也继续清除本地数据
+        }
+      }
+
+      // 清除本地缓存
       localStorage.removeItem('android-learn-progress')
-      window.location.reload()
+      
+      // 重置 progressBloc 状态（不刷新页面，通过状态更新UI）
+      resetProgress()
+      
+      // 关闭对话框
+      setShowResetDialog(false)
+      
+      // 显示成功提示
+      setShowSuccessToast(true)
+      setTimeout(() => setShowSuccessToast(false), 3000)
+    } catch (error) {
+      console.error('重置进度失败:', error)
+    } finally {
+      setIsResetting(false) // 结束 loading
     }
   }
 
@@ -298,7 +335,7 @@ export function ProfilePage() {
               如果你想重新开始学习，可以重置所有进度。此操作不可撤销！
             </p>
             <button
-              onClick={handleReset}
+              onClick={handleResetClick}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-200 cursor-pointer
                 ${isDark 
@@ -336,6 +373,38 @@ export function ProfilePage() {
           )}
         </div>
       </section>
+
+      {/* 重置进度确认对话框 */}
+      <ConfirmDialog
+        isOpen={showResetDialog}
+        title="重置学习进度？"
+        message="此操作将清除所有学习记录、测验历史和成就数据，且不可恢复。确定要继续吗？"
+        confirmText="确认重置"
+        cancelText="取消"
+        type="danger"
+        isLoading={isResetting}
+        onConfirm={handleConfirmReset}
+        onCancel={() => setShowResetDialog(false)}
+      />
+
+      {/* 成功提示 Toast */}
+      {showSuccessToast && (
+        <div 
+          className="fixed bottom-24 md:bottom-8 left-1/2 transform -translate-x-1/2 z-50
+                     animate-fade-in-up"
+        >
+          <div className={`
+            flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl
+            ${isDark 
+              ? 'bg-accent-green text-dark-bg-primary' 
+              : 'bg-accent-green text-white'
+            }
+          `}>
+            <CheckCircle size={20} />
+            <span className="text-sm font-medium">学习进度已重置</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
