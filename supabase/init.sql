@@ -84,6 +84,11 @@ CREATE POLICY "Users can insert own progress"
   ON progress FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- 策略 4：用户可以删除自己的进度
+CREATE POLICY "Users can delete own progress"
+  ON progress FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- ========================================
 -- 3. 测验历史表（quiz_history）
 -- ========================================
@@ -124,6 +129,11 @@ CREATE POLICY "Users can insert own quiz history"
 -- 策略 3：用户可以更新自己的测验记录
 CREATE POLICY "Users can update own quiz history"
   ON quiz_history FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- 策略 4：用户可以删除自己的测验记录
+CREATE POLICY "Users can delete own quiz history"
+  ON quiz_history FOR DELETE
   USING (auth.uid() = user_id);
 
 -- ========================================

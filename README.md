@@ -480,7 +480,26 @@ git push origin main
 - **生产环境**：`https://your-project.vercel.app`
 - **预览环境**：每次推送自动生成唯一 URL
 
-### 三、验证部署
+### 三、Supabase 数据库配置
+
+#### 1. 创建项目并初始化
+
+1. 访问 [Supabase Dashboard](https://supabase.com/dashboard) 创建新项目
+2. 记录 `URL` 和 `anon key`（Settings → API）
+3. 进入 SQL Editor，复制 `supabase/init.sql` 的内容并执行
+
+#### 2. 修复已有项目（如果重置进度失败）
+
+如果你的数据库是旧版本创建的，用户无法重置进度，执行以下 SQL 添加 DELETE 权限：
+
+```sql
+CREATE POLICY "Users can delete own progress" ON progress FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own quiz history" ON quiz_history FOR DELETE USING (auth.uid() = user_id);
+```
+
+或者直接执行 `supabase/add-delete-policies.sql` 文件。
+
+### 四、验证部署
 
 部署成功后检查：
 - ✅ 访问首页正常
@@ -489,7 +508,7 @@ git push origin main
 - ✅ 浏览器开发者工具搜索 AI API key 无结果
 - ✅ Network 面板显示调用 `/api/ai-chat` 而非直接调用 AI API
 
-### 四、常见问题
+### 五、常见问题
 
 **Q: 本地开发 AI 功能 404？**
 
@@ -499,17 +518,18 @@ A: 确保 `.env.local` 中有 **VITE_** 前缀的 AI 变量。
 
 A: 检查 Vercel 环境变量配置，确保 AI 变量**没有** VITE_ 前缀。
 
+**Q: 用户无法重置进度（刷新后数据还在）？**
+
+A: Supabase 缺少 DELETE 权限，执行 `supabase/add-delete-policies.sql` 修复。
+
 **Q: 如何回滚部署？**
 
 A: Vercel Dashboard → Deployments → 选择之前的版本 → Promote to Production
 
-**Q: 如何禁用自动部署？**
-
-A: Settings → Git → 取消勾选 "Automatically expose System Environment Variables"
-
 ---
 
-## 📚 技术文档
+## 📚 相关文件
 
-- **Supabase 配置**：见 `supabase/SETUP_GUIDE.md`
-- **后端 API**：见 `api/ai-chat.ts`（Vercel Serverless Function）
+- `supabase/init.sql` - 数据库初始化脚本（新项目使用）
+- `supabase/add-delete-policies.sql` - DELETE 权限修复（旧项目补充）
+- `api/ai-chat.ts` - AI API 代理（Vercel Serverless Function）
