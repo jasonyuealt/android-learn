@@ -26,6 +26,7 @@ export function AiTextAssistant() {
   const [isOpen, setIsOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
+  const [initialMessage, setInitialMessage] = useState<Message | null>(null) // 保存初始消息
   const [targetContent, setTargetContent] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -60,13 +61,14 @@ export function AiTextAssistant() {
     setIsOpen(true)
     requestAnimationFrame(() => setIsVisible(true))
     
-    const initialMessage: Message = {
+    const firstMessage: Message = {
       role: 'user',
       content: `请分析这段代码或文本在 Android/Kotlin 开发中的含义：\n\n"${selectedText}"`
     }
-    setMessages([initialMessage])
+    setInitialMessage(firstMessage) // 保存初始消息
+    setMessages([firstMessage])
     
-    await callAIStream([initialMessage])
+    await callAIStream([firstMessage])
   }
 
   // 关闭对话面板
@@ -80,6 +82,7 @@ export function AiTextAssistant() {
     setTimeout(() => {
       setIsOpen(false)
       setMessages([])
+      setInitialMessage(null) // 清除初始消息
       setInputValue('')
       setTargetContent('')
       setIsStreamComplete(false)
@@ -222,17 +225,21 @@ export function AiTextAssistant() {
     await callAIStream(newMessages)
   }
 
-  // 重新开始
-  const handleReset = () => {
+  // 重新开始（保留初始问题，重新发起分析）
+  const handleReset = async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
     resetTyping()
-    setMessages([])
-    setInputValue('')
-    setTargetContent('')
-    setIsLoading(false)
-    setIsStreamComplete(false)
+    
+    // 如果有初始消息，保留它并重新发起分析
+    if (initialMessage) {
+      setMessages([initialMessage])
+      setInputValue('')
+      setTargetContent('')
+      setIsStreamComplete(false)
+      await callAIStream([initialMessage])
+    }
   }
 
   return (

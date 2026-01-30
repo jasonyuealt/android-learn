@@ -228,21 +228,22 @@ export async function loadProgress(userId: string): Promise<{
       .from('progress')
       .select('*')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle() // 使用 maybeSingle() 避免 PGRST116 错误
 
     if (error) {
-      // PGRST116 表示未找到记录，这是正常的（新用户）
-      if (error.code === 'PGRST116') {
-        return {
-          completedLessons: [],
-          currentLesson: null,
-          streakDays: 0,
-          lastStudyDate: null,
-          startDate: null
-        }
-      }
       console.error('加载进度失败:', error)
       return null
+    }
+
+    // 数据不存在时返回默认值
+    if (!data) {
+      return {
+        completedLessons: [],
+        currentLesson: null,
+        streakDays: 0,
+        lastStudyDate: null,
+        startDate: null
+      }
     }
 
     return {
@@ -349,14 +350,15 @@ export async function loadQuizHistory(
       .select('*')
       .eq('user_id', userId)
       .eq('lesson_id', lessonId)
-      .single()
+      .maybeSingle() // 使用 maybeSingle() 避免 PGRST116 错误
 
     if (error) {
-      // PGRST116 表示未找到记录（第一次测验）
-      if (error.code === 'PGRST116') {
-        return null
-      }
       console.error('加载测验历史失败:', error)
+      return null
+    }
+
+    // 数据不存在时返回 null（第一次测验）
+    if (!data) {
       return null
     }
 
