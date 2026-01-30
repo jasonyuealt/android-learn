@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useProgressBloc } from '../blocs/progressBloc'
 import { getLessonById, getAdjacentLessons, courseData } from '../data/courses'
-import { QuizSection } from '../components/QuizSection'
+import { QuizSection } from '../components/Quiz'
 import { CodeBlock } from '../components/CodeBlock'
 import type { LessonContent } from '../data/courses'
 
