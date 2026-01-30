@@ -1,6 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+/**
+ * AI 文本分析助手组件
+ * 选中文本后弹出 AI 分析
+ */
+
+import { useState, useRef, useEffect } from 'react'
 import { Sparkles, X, Send, RotateCcw } from 'lucide-react'
-import { useThemeBloc } from '../blocs/themeBloc'
+import { useThemeBloc } from '../../../blocs/themeBloc'
+import { useTextSelection } from './hooks/useTextSelection'
+import { useTypingEffect } from '../PageAssistant/hooks/useTypingEffect'
+import { renderMarkdown, filterThinkTags } from '../PageAssistant/utils/markdown'
 
 // 消息类型
 interface Message {
@@ -13,184 +21,41 @@ const API_BASE = 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
 const API_KEY = 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
 const MODEL = 'qwen-3-32b'
 
-// 打字机效果配置
-const TYPING_INTERVAL = 5  // 每次更新间隔（毫秒）
-const CHARS_PER_TICK = 1   // 每次显示的字符数
-
-/**
- * 过滤掉 <think> 标签及其内容
- */
-function filterThinkTags(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
-}
-
-/**
- * 渲染 Markdown 格式的文本
- */
-function renderMarkdown(text: string, isDark: boolean): string {
-  let html = text
-  
-  // 处理代码块
-  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const langLabel = lang || 'code'
-    return `<div class="my-3 rounded-xl overflow-hidden ${isDark ? 'bg-zinc-900/80' : 'bg-gray-100'}">
-      <div class="px-3 py-1.5 text-xs uppercase tracking-wider ${isDark ? 'text-zinc-500 bg-zinc-900' : 'text-gray-500 bg-gray-200/50'}">${langLabel}</div>
-      <pre class="px-3 py-2 overflow-x-auto"><code class="text-xs md:text-sm font-mono ${isDark ? 'text-zinc-300' : 'text-gray-800'}">${code.trim()}</code></pre>
-    </div>`
-  })
-  
-  // 处理行内代码
-  html = html.replace(/`([^`]+)`/g, `<code class="px-1.5 py-0.5 rounded text-xs md:text-sm font-mono ${isDark ? 'bg-zinc-800 text-accent-green' : 'bg-gray-100 text-green-600'}">$1</code>`)
-  
-  // 处理加粗
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>')
-  
-  // 处理标题列表
-  html = html.replace(/^(\d+)\.\s*\*\*([^*]+)\*\*/gm, '<div class="font-semibold mt-4 mb-2">$1. $2</div>')
-  
-  // 处理列表
-  html = html.replace(/^-\s+(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-accent-purple mt-1">•</span><span>$1</span></div>')
-  
-  // 处理换行
-  html = html.replace(/\n\n/g, '</p><p class="my-3">')
-  html = html.replace(/\n/g, '<br/>')
-  
-  return `<p class="my-2">${html}</p>`
-}
-
-/**
- * AI 文本分析助手组件
- */
 export function AiTextAssistant() {
-  const [selectedText, setSelectedText] = useState('')
-  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 })
-  const [showButton, setShowButton] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
-  const [displayedContent, setDisplayedContent] = useState('')
-  const [targetContent, setTargetContent] = useState('') // 目标内容（来自流式或完整响应）
+  const [targetContent, setTargetContent] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isTyping, setIsTyping] = useState(false)
-  const [isStreamComplete, setIsStreamComplete] = useState(false) // 流式是否完成
+  const [isStreamComplete, setIsStreamComplete] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
-  const displayIndexRef = useRef(0) // 当前显示到的索引
-  const typingTimerRef = useRef<NodeJS.Timeout | null>(null)
   
   const theme = useThemeBloc((state) => state.theme)
   const isDark = theme === 'dark'
+  
+  const { selectedText, buttonPosition, showButton, hideButton } = useTextSelection(isOpen)
+  const { displayedContent, isTyping, reset: resetTyping, isComplete } = useTypingEffect(targetContent, isStreamComplete)
+
+  // 监听打字完成
+  useEffect(() => {
+    if (isComplete) {
+      setMessages(prev => [...prev, { role: 'assistant', content: targetContent }])
+      setTargetContent('')
+      setIsStreamComplete(false)
+      resetTyping()
+    }
+  }, [isComplete, targetContent, resetTyping])
 
   // 滚动到最新消息
-  const scrollToBottom = useCallback(() => {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, displayedContent, scrollToBottom])
-
-  // 独立的打字机效果 - 基于定时器，与流式返回速度无关
-  useEffect(() => {
-    // 清除之前的定时器
-    if (typingTimerRef.current) {
-      clearInterval(typingTimerRef.current)
-      typingTimerRef.current = null
-    }
-
-    // 如果有目标内容且还没显示完
-    if (targetContent && displayIndexRef.current < targetContent.length) {
-      setIsTyping(true)
-      
-      typingTimerRef.current = setInterval(() => {
-        displayIndexRef.current += CHARS_PER_TICK
-        
-        if (displayIndexRef.current >= targetContent.length) {
-          // 打字完成
-          displayIndexRef.current = targetContent.length
-          setDisplayedContent(targetContent)
-          setIsTyping(false)
-          
-          if (typingTimerRef.current) {
-            clearInterval(typingTimerRef.current)
-            typingTimerRef.current = null
-          }
-          
-          // 如果流式已完成，将内容移到消息列表
-          if (isStreamComplete) {
-            setMessages(prev => [...prev, { role: 'assistant', content: targetContent }])
-            setDisplayedContent('')
-            setTargetContent('')
-            displayIndexRef.current = 0
-            setIsStreamComplete(false)
-          }
-        } else {
-          setDisplayedContent(targetContent.slice(0, displayIndexRef.current))
-        }
-      }, TYPING_INTERVAL)
-    }
-
-    return () => {
-      if (typingTimerRef.current) {
-        clearInterval(typingTimerRef.current)
-      }
-    }
-  }, [targetContent, isStreamComplete])
-
-  // 监听文本选择
-  useEffect(() => {
-    const handleSelection = (e: MouseEvent | KeyboardEvent) => {
-      if (isOpen) return
-      
-      const target = e.target as HTMLElement
-      if (target.closest('[data-ai-button]') || target.closest('[data-modal]')) return
-      
-      const selection = window.getSelection()
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        const container = range.commonAncestorContainer as HTMLElement
-        const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container
-        if (element?.closest('[data-modal]')) return
-      }
-      
-      const text = selection?.toString().trim() || ''
-      
-      if (text.length > 2 && text.length < 500) {
-        const range = selection?.getRangeAt(0)
-        const rect = range?.getBoundingClientRect()
-        
-        if (rect) {
-          const x = Math.max(60, Math.min(rect.left + rect.width / 2, window.innerWidth - 60))
-          const y = Math.max(50, rect.top - 10)
-          
-          setSelectedText(text)
-          setButtonPosition({ x, y })
-          setShowButton(true)
-        }
-      }
-    }
-
-    const handleMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target.closest('[data-ai-button]')) return
-      setShowButton(false)
-    }
-
-    document.addEventListener('mouseup', handleSelection)
-    document.addEventListener('keyup', handleSelection)
-    document.addEventListener('mousedown', handleMouseDown)
-    
-    return () => {
-      document.removeEventListener('mouseup', handleSelection)
-      document.removeEventListener('keyup', handleSelection)
-      document.removeEventListener('mousedown', handleMouseDown)
-    }
-  }, [isOpen])
+  }, [messages, displayedContent])
 
   // 打开对话面板
   const handleOpenChat = async () => {
-    setShowButton(false)
+    hideButton()
     setIsOpen(true)
     requestAnimationFrame(() => setIsVisible(true))
     
@@ -208,30 +73,24 @@ export function AiTextAssistant() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-    if (typingTimerRef.current) {
-      clearInterval(typingTimerRef.current)
-    }
+    resetTyping()
     
     setIsVisible(false)
     setTimeout(() => {
       setIsOpen(false)
       setMessages([])
       setInputValue('')
-      setDisplayedContent('')
       setTargetContent('')
-      setIsTyping(false)
       setIsStreamComplete(false)
-      displayIndexRef.current = 0
     }, 200)
   }
 
   // 流式调用 AI API
   const callAIStream = async (chatMessages: Message[]) => {
     setIsLoading(true)
-    setDisplayedContent('')
     setTargetContent('')
     setIsStreamComplete(false)
-    displayIndexRef.current = 0
+    resetTyping()
     
     abortControllerRef.current = new AbortController()
     
@@ -306,7 +165,6 @@ export function AiTextAssistant() {
                 const content = parsed.choices?.[0]?.delta?.content || ''
                 if (content) {
                   accumulatedContent += content
-                  // 更新目标内容，打字机会自动追赶
                   setTargetContent(filterThinkTags(accumulatedContent))
                 }
               } catch {
@@ -317,7 +175,6 @@ export function AiTextAssistant() {
         }
       }
 
-      // 流式完成
       const filteredContent = filterThinkTags(accumulatedContent)
       setTargetContent(filteredContent)
       setIsStreamComplete(true)
@@ -330,7 +187,6 @@ export function AiTextAssistant() {
       console.error('AI error:', error)
       const errorMsg = '抱歉，AI 服务暂时不可用，请稍后再试。'
       setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }])
-      setDisplayedContent('')
       setTargetContent('')
       setIsLoading(false)
     }
@@ -353,17 +209,12 @@ export function AiTextAssistant() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-    if (typingTimerRef.current) {
-      clearInterval(typingTimerRef.current)
-    }
+    resetTyping()
     setMessages([])
     setInputValue('')
-    setDisplayedContent('')
     setTargetContent('')
     setIsLoading(false)
-    setIsTyping(false)
     setIsStreamComplete(false)
-    displayIndexRef.current = 0
   }
 
   return (
