@@ -114,7 +114,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 基本语法：fun 函数名(参数: 类型): 返回类型 { 函数体 }\nfun add(a: Int, b: Int): Int {\n    return a + b\n}\n\n// 单表达式函数（更简洁）\nfun add(a: Int, b: Int) = a + b  // 自动推断返回 Int\n\n// 无返回值（Unit 可省略）\nfun showMessage(msg: String) {\n    println(msg)\n}'
+              content: '// 基本语法：fun 函数名(参数: 类型): 返回类型 { 函数体 }\nfun add(a: Int, b: Int): Int {\n    return a + b\n}\n\nprintln(add(3, 5))  // 输出: 8\n\n// 单表达式函数（更简洁）\nfun add(a: Int, b: Int) = a + b  // 自动推断返回 Int\n\n// 无返回值（Unit 可省略）\nfun showMessage(msg: String) {\n    println(msg)  // 输出传入的消息\n}'
             },
             {
               type: 'text',
@@ -123,7 +123,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 有默认值的参数\nfun greet(name: String = "用户", greeting: String = "你好") {\n    println("$greeting, $name!")\n}\n\ngreet()                      // 你好, 用户!\ngreet("张三")                // 你好, 张三!\ngreet("张三", "早上好")      // 早上好, 张三!\ngreet(greeting = "晚安")     // 命名参数：晚安, 用户!'
+              content: '// 有默认值的参数\nfun greet(name: String = "用户", greeting: String = "你好") {\n    println("$greeting, $name!")\n}\n\ngreet()                      // 输出: 你好, 用户!\ngreet("张三")                // 输出: 你好, 张三!\ngreet("张三", "早上好")      // 输出: 早上好, 张三!\ngreet(greeting = "晚安")     // 输出: 晚安, 用户!'
             },
             {
               type: 'tip',
@@ -154,7 +154,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: 'val numbers = listOf(1, 2, 3, 4, 5)\n\n// 过滤：找出大于 2 的数\nval filtered = numbers.filter { it > 2 }  // [3, 4, 5]\n\n// 转换：每个数乘以 2\nval doubled = numbers.map { it * 2 }      // [2, 4, 6, 8, 10]\n\n// 遍历：依次打印\nnumbers.forEach { println(it) }           // 1 2 3 4 5'
+              content: 'val numbers = listOf(1, 2, 3, 4, 5)\n\n// 过滤：找出大于 2 的数\nval filtered = numbers.filter { it > 2 }\nprintln(filtered)  // 输出: [3, 4, 5]\n\n// 转换：每个数乘以 2\nval doubled = numbers.map { it * 2 }\nprintln(doubled)  // 输出: [2, 4, 6, 8, 10]\n\n// 遍历：依次打印\nnumbers.forEach { println(it) }  // 输出: 1 2 3 4 5（每个数字一行）'
             },
             {
               type: 'text',
@@ -219,7 +219,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 保证有值（不会是 null）\nval appName: String = "Android学习"\nprintln(appName.length)  // 永远安全\n\n// 可能是 null（类型后面有 ?）\nval nickname: String? = getUserNickname()  // 注意这个问号！\n// println(nickname.length)  // 编译错误！Kotlin 不让你直接用'
+              content: '// 保证有值（不会是 null）\nval appName: String = "Android学习"\nprintln(appName.length)  // 输出: 10（永远安全）\n\n// 可能是 null（类型后面有 ?）\nval nickname: String? = getUserNickname()  // 注意这个问号！\n// println(nickname.length)  // 编译错误！Kotlin 不让你直接用'
             },
             {
               type: 'text',
@@ -232,7 +232,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: 'val nickname: String? = getUserNickname()\n\n// 安全写法\nval length = nickname?.length  // nickname 是 null 时，返回 null\n\n// 链式调用也安全\nval firstChar = nickname?.uppercase()?.first()  // 任何一步 null 就返回 null'
+              content: 'val nickname: String? = getUserNickname()\n\n// 安全写法\nval length = nickname?.length  // nickname 是 null 时，返回 null\nprintln(length)  // 如果 nickname 是 null，输出: null\n\n// 链式调用也安全\nval firstChar = nickname?.uppercase()?.first()  // 任何一步 null 就返回 null\nprintln(firstChar)  // 如果 nickname 是 null，输出: null'
             },
             {
               type: 'tip',
@@ -318,7 +318,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 基本的类\nclass User(val name: String, var age: Int) {\n    // 方法\n    fun introduce() = "我是 $name，$age 岁"\n}\n\n// 使用\nval user = User("张三", 25)\nprintln(user.name)        // "张三"\nprintln(user.introduce()) // "我是 张三，25 岁"'
+              content: '// 基本的类\nclass User(val name: String, var age: Int) {\n    // 方法\n    fun introduce() = "我是 $name，$age 岁"\n}\n\n// 使用\nval user = User("张三", 25)\nprintln(user.name)        // 输出: 张三\nprintln(user.introduce()) // 输出: 我是 张三，25 岁'
             },
             {
               type: 'text',
@@ -327,7 +327,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 定义数据类\ndata class User(\n    val id: Int,\n    val name: String,\n    val email: String\n)\n\n// 自动获得这些功能：\nval user1 = User(1, "张三", "zhangsan@example.com")\nval user2 = User(1, "张三", "zhangsan@example.com")\n\nprintln(user1 == user2)  // true（自动比较所有属性）\nprintln(user1)           // User(id=1, name=张三, email=...)\n\n// copy - 复制并修改部分属性\nval user3 = user1.copy(name = "李四")  // 只改名字'
+              content: '// 定义数据类\ndata class User(\n    val id: Int,\n    val name: String,\n    val email: String\n)\n\n// 自动获得这些功能：\nval user1 = User(1, "张三", "zhangsan@example.com")\nval user2 = User(1, "张三", "zhangsan@example.com")\n\nprintln(user1 == user2)  // 输出: true（自动比较所有属性）\nprintln(user1)           // 输出: User(id=1, name=张三, email=zhangsan@example.com)\n\n// copy - 复制并修改部分属性\nval user3 = user1.copy(name = "李四")  // 只改名字\nprintln(user3)  // 输出: User(id=1, name=李四, email=zhangsan@example.com)'
             },
             {
               type: 'text',
@@ -336,7 +336,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// object - 单例\nobject AppConfig {\n    val apiUrl = "https://api.example.com"\n    var isDebug = false\n}\n\n// 直接使用，不需要创建实例\nprintln(AppConfig.apiUrl)\nAppConfig.isDebug = true\n\n// companion object - 类的伴生对象（类似静态成员）\nclass User(val name: String) {\n    companion object {\n        fun create(name: String) = User(name)\n    }\n}\n\nval user = User.create("张三")  // 不需要先创建 User 实例'
+              content: '// object - 单例\nobject AppConfig {\n    val apiUrl = "https://api.example.com"\n    var isDebug = false\n}\n\n// 直接使用，不需要创建实例\nprintln(AppConfig.apiUrl)  // 输出: https://api.example.com\nAppConfig.isDebug = true\nprintln(AppConfig.isDebug)  // 输出: true\n\n// companion object - 类的伴生对象（类似静态成员）\nclass User(val name: String) {\n    companion object {\n        fun create(name: String) = User(name)\n    }\n}\n\nval user = User.create("张三")  // 不需要先创建 User 实例\nprintln(user.name)  // 输出: 张三'
             },
             {
               type: 'text',
@@ -370,7 +370,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 创建列表\nval fruits = listOf("苹果", "香蕉", "橙子")  // 不可变\nval numbers = mutableListOf(1, 2, 3)         // 可变\n\n// 访问元素\nprintln(fruits[0])          // "苹果"\nprintln(fruits.first())     // "苹果"\nprintln(fruits.last())      // "橙子"\n\n// 修改可变列表\nnumbers.add(4)              // [1, 2, 3, 4]\nnumbers.remove(2)           // [1, 3, 4]\n\n// Map\nval user = mapOf(\n    "name" to "张三",\n    "age" to 25\n)\nprintln(user["name"])       // "张三"'
+              content: '// 创建列表\nval fruits = listOf("苹果", "香蕉", "橙子")  // 不可变\nval numbers = mutableListOf(1, 2, 3)         // 可变\n\n// 访问元素\nprintln(fruits[0])          // 输出: 苹果\nprintln(fruits.first())     // 输出: 苹果\nprintln(fruits.last())      // 输出: 橙子\n\n// 修改可变列表\nnumbers.add(4)              // [1, 2, 3, 4]\nprintln(numbers)            // 输出: [1, 2, 3, 4]\nnumbers.remove(2)           // [1, 3, 4]\nprintln(numbers)            // 输出: [1, 3, 4]\n\n// Map\nval user = mapOf(\n    "name" to "张三",\n    "age" to 25\n)\nprintln(user["name"])       // 输出: 张三'
             },
             {
               type: 'text',
@@ -379,7 +379,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: 'data class User(val name: String, val age: Int)\n\nval users = listOf(\n    User("张三", 25),\n    User("李四", 30),\n    User("王五", 20)\n)\n\n// 过滤：找出年龄大于 22 的用户\nval adults = users.filter { it.age > 22 }\n// [User(张三, 25), User(李四, 30)]\n\n// 转换：提取所有用户名\nval names = users.map { it.name }\n// ["张三", "李四", "王五"]\n\n// 查找：找第一个年龄大于 25 的\nval found = users.find { it.age > 25 }\n// User(李四, 30)\n\n// 排序：按年龄排序\nval sorted = users.sortedBy { it.age }\n// [王五(20), 张三(25), 李四(30)]\n\n// 链式调用 - 非常常见\nval result = users\n    .filter { it.age >= 20 }\n    .sortedBy { it.age }\n    .map { it.name }\n// ["王五", "张三", "李四"]'
+              content: 'data class User(val name: String, val age: Int)\n\nval users = listOf(\n    User("张三", 25),\n    User("李四", 30),\n    User("王五", 20)\n)\n\n// 过滤：找出年龄大于 22 的用户\nval adults = users.filter { it.age > 22 }\nprintln(adults)  // 输出: [User(张三, 25), User(李四, 30)]\n\n// 转换：提取所有用户名\nval names = users.map { it.name }\nprintln(names)  // 输出: [张三, 李四, 王五]\n\n// 查找：找第一个年龄大于 25 的\nval found = users.find { it.age > 25 }\nprintln(found)  // 输出: User(李四, 30)\n\n// 排序：按年龄排序\nval sorted = users.sortedBy { it.age }\nprintln(sorted)  // 输出: [User(王五, 20), User(张三, 25), User(李四, 30)]\n\n// 链式调用 - 非常常见\nval result = users\n    .filter { it.age >= 20 }\n    .sortedBy { it.age }\n    .map { it.name }\nprintln(result)  // 输出: [王五, 张三, 李四]'
             },
             {
               type: 'tip',
@@ -412,7 +412,7 @@ export const phase1: Phase = {
             },
             {
               type: 'text',
-              content: '## 核心概念\n\n| 关键字 | 作用 |\n|-------|------|\n| `suspend` | 标记可挂起的函数，只能在协程中调用 |\n| `launch` | 启动协程，不返回结果 |\n| `async` | 启动协程，返回 Deferred（可获取结果） |\n| `await` | 等待 async 的结果 |\n| `viewModelScope` | ViewModel 的协程作用域，自动管理生命周期 |'
+              content: '## 核心概念\n\n协程的执行流程：\n\n```mermaid\ngraph LR\n    A[主线程] --> B[启动协程]\n    B --> C{协程类型}\n    C -->|launch| D[执行任务]\n    C -->|async| E[执行任务并返回结果]\n    D --> F[完成]\n    E --> G[await获取结果]\n    G --> F\n```\n\n核心关键字说明：\n\n| 关键字 | 作用 |\n|-------|------|\n| `suspend` | 标记可挂起的函数，只能在协程中调用 |\n| `launch` | 启动协程，不返回结果 |\n| `async` | 启动协程，返回 Deferred（可获取结果） |\n| `await` | 等待 async 的结果 |\n| `viewModelScope` | ViewModel 的协程作用域，自动管理生命周期 |'
             },
             {
               type: 'text',
@@ -421,7 +421,7 @@ export const phase1: Phase = {
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 定义 suspend 函数\nsuspend fun fetchUser(): User {\n    delay(1000)  // 模拟网络延迟，不会阻塞线程\n    return User("张三", 25)\n}\n\n// suspend 函数只能在协程中调用\n// fetchUser()  // 编译错误！不能在普通函数中调用'
+              content: '// 定义 suspend 函数\nsuspend fun fetchUser(): User {\n    delay(1000)  // 模拟网络延迟 1 秒，不会阻塞线程\n    return User("张三", 25)\n}\n\n// 调用示例\nviewModelScope.launch {\n    val user = fetchUser()  // 等待 1 秒后返回结果\n    println(user.name)  // 输出: 张三\n}\n\n// suspend 函数只能在协程中调用\n// fetchUser()  // 编译错误！不能在普通函数中调用'
             },
             {
               type: 'text',
@@ -434,12 +434,12 @@ export const phase1: Phase = {
             },
             {
               type: 'text',
-              content: '## 并发请求：async/await\n\n需要同时发起多个请求并等待全部完成时使用：'
+              content: '## 并发请求：async/await\n\n需要同时发起多个请求并等待全部完成时使用。\n\n**并发执行流程**：\n\n```mermaid\nsequenceDiagram\n    participant Main as 主线程\n    participant C as 协程\n    participant A1 as async任务1\n    participant A2 as async任务2\n    \n    Main->>C: viewModelScope.launch\n    C->>A1: async { fetchUser() }\n    C->>A2: async { fetchOrders() }\n    Note over A1,A2: 并行执行\n    A1-->>C: 返回 Deferred\n    A2-->>C: 返回 Deferred\n    C->>A1: await()\n    A1-->>C: User数据\n    C->>A2: await()\n    A2-->>C: Orders数据\n    C->>Main: updateUI(user, orders)\n```\n\n**代码示例**：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'viewModelScope.launch {\n    // 同时发起两个请求\n    val userDeferred = async { fetchUser() }\n    val ordersDeferred = async { fetchOrders() }\n    \n    // 等待两个请求都完成\n    val user = userDeferred.await()\n    val orders = ordersDeferred.await()\n    \n    // 并行执行，总时间 ≈ max(两个请求时间)\n    updateUI(user, orders)\n}'
+              content: 'viewModelScope.launch {\n    // 同时发起两个请求（并行执行）\n    val userDeferred = async { fetchUser() }  // 开始请求用户数据\n    val ordersDeferred = async { fetchOrders() }  // 开始请求订单数据\n    \n    // 等待两个请求都完成\n    val user = userDeferred.await()  // 获取用户结果\n    val orders = ordersDeferred.await()  // 获取订单结果\n    \n    // 并行执行，总时间 ≈ max(两个请求时间)，而非相加\n    updateUI(user, orders)\n}'
             },
             {
               type: 'text',
@@ -452,16 +452,16 @@ export const phase1: Phase = {
             },
             {
               type: 'text',
-              content: '## StateFlow：状态管理\n\n在 ViewModel 中管理 UI 状态的推荐方式：'
+              content: '## StateFlow：状态管理\n\n在 ViewModel 中管理 UI 状态的推荐方式。\n\n**数据流向**：\n\n```mermaid\ngraph TD\n    A[ViewModel] --> B[MutableStateFlow私有]\n    B --> C[StateFlow公开只读]\n    C --> D[Compose collectAsState]\n    D --> E[UI自动重组]\n    F[用户操作] --> G[调用ViewModel方法]\n    G --> B\n    \n    style B fill:#10b981,color:#fff\n    style C fill:#3b82f6,color:#fff\n    style E fill:#f59e0b,color:#fff\n```\n\n**代码示例**：'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: 'class CounterViewModel : ViewModel() {\n    // 私有可变状态\n    private val _count = MutableStateFlow(0)\n    // 公开只读状态\n    val count: StateFlow<Int> = _count.asStateFlow()\n    \n    fun increment() {\n        _count.value++\n    }\n}\n\n// 在 Compose 中观察\n@Composable\nfun CounterScreen(viewModel: CounterViewModel) {\n    val count by viewModel.count.collectAsState()\n    Text("Count: $count")\n}'
+              content: 'class CounterViewModel : ViewModel() {\n    // 私有可变状态\n    private val _count = MutableStateFlow(0)\n    // 公开只读状态\n    val count: StateFlow<Int> = _count.asStateFlow()\n    \n    fun increment() {\n        _count.value++  // 修改状态，UI 会自动更新\n    }\n}\n\n// 在 Compose 中观察\n@Composable\nfun CounterScreen(viewModel: CounterViewModel) {\n    val count by viewModel.count.collectAsState()\n    Text("Count: $count")  // count 变化时自动重组\n}'
             },
             {
               type: 'tip',
-              content: '审查要点：1. 网络/数据库操作必须在协程中 2. 检查是否正确处理异常 3. 确保使用正确的 scope（如 viewModelScope）'
+              content: '**重点关注**：1. 网络/数据库操作必须在协程中 2. 是否正确处理异常 3. 是否使用正确的 scope（如 viewModelScope）'
             }
           ]
         }
@@ -487,7 +487,7 @@ export const phase1: Phase = {
             },
             {
               type: 'text',
-              content: '## 基本工作流程\n\n1. 在 Cursor 中描述需求，让 AI 生成代码\n2. 审查 AI 生成的代码，确认逻辑正确\n3. 在 Android Studio 中运行，测试效果\n4. 发现问题后回到 Cursor，描述问题让 AI 修复\n5. 重复直到功能完成'
+              content: '## 基本工作流程\n\n1. 在 Cursor 中描述需求，让 AI 生成代码\n2. 理解 AI 生成的代码，确认逻辑正确\n3. 在 Android Studio 中运行，测试效果\n4. 发现问题后回到 Cursor，描述问题让 AI 修复\n5. 重复直到功能完成'
             },
             {
               type: 'text',
@@ -495,7 +495,7 @@ export const phase1: Phase = {
             },
             {
               type: 'warning',
-              content: '**AI 不是万能的**：它可能生成过时的 API、有安全隐患的代码、或者效率低下的实现。你的审查能力决定了最终代码质量。'
+              content: '**AI 不是万能的**：它可能生成过时的 API、有安全隐患的代码、或者效率低下的实现。你的代码理解能力决定了最终代码质量。'
             }
           ]
         },

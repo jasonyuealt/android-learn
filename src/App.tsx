@@ -129,12 +129,13 @@ function App() {
     initialize()
   }, [initialize])
 
-  // 用户登录后，加载云端进度
+  // 用户登录后，加载云端进度（只在用户ID变化时加载）
   useEffect(() => {
     if (currentUser) {
       loadFromCloud(currentUser.id)
     }
-  }, [currentUser, loadFromCloud])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]) // 只依赖用户ID，避免loadFromCloud变化导致重新加载
 
   // 初始化时同步主题到 body
   useEffect(() => {

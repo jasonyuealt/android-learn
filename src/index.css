@@ -174,3 +174,20 @@ body.light {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Mermaid 图表容器样式 */
+.mermaid-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  overflow-x: auto;
+  min-height: 200px;
+}
+
+/* Mermaid SVG 样式优化 */
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}

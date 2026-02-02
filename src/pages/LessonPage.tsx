@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen } from 'lucide-react'
 import { useThemeBloc } from '../blocs/themeBloc'
@@ -7,6 +7,164 @@ import { getLessonById, getAdjacentLessons, courseData } from '../data/courses'
 import { QuizSection } from '../components/Quiz'
 import { CodeBlock } from '../components/CodeBlock'
 import type { LessonContent } from '../data/courses'
+import mermaid from 'mermaid'
+
+/**
+ * Mermaid图表组件
+ */
+function MermaidDiagram({ code, isDark, index }: { code: string, isDark: boolean, index: number }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const renderDiagram = async () => {
+      if (!containerRef.current) return
+      
+      try {
+        setError(null)
+        const id = `mermaid-${Date.now()}-${index}`
+        
+        // 初始化Mermaid配置 - 贴合项目深色主题 + 绿色accent
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            // 暗黑模式 - 深色背景 + 绿色主题
+            primaryColor: '#10b981',           // 绿色节点背景
+            primaryTextColor: '#ffffff',       // 节点文字白色
+            primaryBorderColor: '#10b981',     // 绿色边框
+            
+            secondaryColor: '#1e40af',         // 深蓝色（菱形等）
+            secondaryTextColor: '#ffffff',
+            secondaryBorderColor: '#3b82f6',
+            
+            tertiaryColor: '#ea580c',          // 深橙色（强调）
+            tertiaryTextColor: '#ffffff',
+            tertiaryBorderColor: '#f59e0b',
+            
+            // 背景和线条
+            background: '#09090b',             // 极深背景
+            mainBkg: '#18181b',                // 主背景
+            secondBkg: '#27272a',              // 次要背景
+            
+            lineColor: '#52525b',              // 线条颜色
+            border1: '#3f3f46',                // 边框
+            border2: '#52525b',
+            
+            // 文字
+            textColor: '#e4e4e7',              // 主文字
+            nodeBorder: '#10b981',             // 节点边框
+            clusterBkg: '#18181b',             // 集群背景
+            clusterBorder: '#3f3f46',
+            
+            // 流程图特定
+            edgeLabelBackground: '#18181b',
+            
+            // 序列图特定
+            actorBorder: '#10b981',
+            actorBkg: '#18181b',
+            actorTextColor: '#e4e4e7',
+            actorLineColor: '#52525b',
+            signalColor: '#e4e4e7',
+            signalTextColor: '#e4e4e7',
+            labelBoxBkgColor: '#27272a',
+            labelBoxBorderColor: '#3f3f46',
+            labelTextColor: '#e4e4e7',
+            loopTextColor: '#e4e4e7',
+            noteBorderColor: '#f59e0b',
+            noteBkgColor: '#422006',
+            noteTextColor: '#fef3c7',
+            activationBorderColor: '#10b981',
+            activationBkgColor: '#064e3b',
+            sequenceNumberColor: '#ffffff',
+            
+            // 字体
+            fontFamily: 'Noto Sans SC, Sora, system-ui, sans-serif',
+            fontSize: '14px'
+          } : {
+            // 浅色模式 - 白色背景 + 绿色主题
+            primaryColor: '#dcfce7',           // 浅绿背景
+            primaryTextColor: '#14532d',       // 深绿文字
+            primaryBorderColor: '#10b981',     // 绿色边框
+            
+            secondaryColor: '#dbeafe',         // 浅蓝背景
+            secondaryTextColor: '#1e3a8a',
+            secondaryBorderColor: '#3b82f6',
+            
+            tertiaryColor: '#fed7aa',          // 浅橙背景
+            tertiaryTextColor: '#7c2d12',
+            tertiaryBorderColor: '#f59e0b',
+            
+            // 背景和线条
+            background: '#ffffff',
+            mainBkg: '#f9fafb',
+            secondBkg: '#f3f4f6',
+            
+            lineColor: '#9ca3af',
+            border1: '#d1d5db',
+            border2: '#e5e7eb',
+            
+            // 文字
+            textColor: '#1f2937',
+            nodeBorder: '#10b981',
+            clusterBkg: '#f9fafb',
+            clusterBorder: '#d1d5db',
+            
+            edgeLabelBackground: '#ffffff',
+            
+            // 序列图特定
+            actorBorder: '#10b981',
+            actorBkg: '#f9fafb',
+            actorTextColor: '#1f2937',
+            actorLineColor: '#d1d5db',
+            signalColor: '#1f2937',
+            signalTextColor: '#1f2937',
+            labelBoxBkgColor: '#f3f4f6',
+            labelBoxBorderColor: '#d1d5db',
+            labelTextColor: '#1f2937',
+            loopTextColor: '#1f2937',
+            noteBorderColor: '#f59e0b',
+            noteBkgColor: '#fffbeb',
+            noteTextColor: '#78350f',
+            activationBorderColor: '#10b981',
+            activationBkgColor: '#d1fae5',
+            sequenceNumberColor: '#1f2937',
+            
+            fontFamily: 'Noto Sans SC, Sora, system-ui, sans-serif',
+            fontSize: '14px'
+          }
+        })
+        
+        // 渲染图表
+        const { svg } = await mermaid.render(id, code)
+        
+        if (containerRef.current) {
+          containerRef.current.innerHTML = svg
+        }
+      } catch (err) {
+        console.error('Mermaid渲染失败:', err)
+        setError(err instanceof Error ? err.message : '渲染失败')
+      }
+    }
+
+    renderDiagram()
+  }, [code, isDark, index])
+
+  if (error) {
+    return (
+      <div className="my-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-sm">
+        Mermaid渲染错误: {error}
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      ref={containerRef}
+      className={`mermaid-container my-6 ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-white border border-light-border-subtle shadow-sm'}`}
+    />
+  )
+}
 
 /**
  * 解析行内 Markdown（加粗、代码等）
@@ -32,12 +190,66 @@ function parseAlertContent(text: string, isDark: boolean): string {
 }
 
 /**
- * 解析 Markdown 内容，支持表格、标题、列表等
+ * 提取并分离Mermaid代码块
+ * 返回：{ parts: 混合内容数组, mermaidBlocks: Mermaid代码数组 }
+ */
+function extractMermaidBlocks(content: string): { 
+  parts: Array<{ type: 'text' | 'mermaid', content: string, index?: number }> 
+} {
+  const parts: Array<{ type: 'text' | 'mermaid', content: string, index?: number }> = []
+  const mermaidRegex = /```mermaid\n([\s\S]*?)```/g
+  
+  let lastIndex = 0
+  let match
+  let mermaidIndex = 0
+  
+  while ((match = mermaidRegex.exec(content)) !== null) {
+    // 添加Mermaid之前的文本
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: content.slice(lastIndex, match.index)
+      })
+    }
+    
+    // 添加Mermaid代码块
+    parts.push({
+      type: 'mermaid',
+      content: match[1].trim(),
+      index: mermaidIndex++
+    })
+    
+    lastIndex = match.index + match[0].length
+  }
+  
+  // 添加剩余文本
+  if (lastIndex < content.length) {
+    parts.push({
+      type: 'text',
+      content: content.slice(lastIndex)
+    })
+  }
+  
+  // 如果没有Mermaid代码块，返回整个内容作为文本
+  if (parts.length === 0) {
+    parts.push({
+      type: 'text',
+      content: content
+    })
+  }
+  
+  return { parts }
+}
+
+/**
+ * 解析 Markdown 内容，支持表格、标题、列表等（不处理Mermaid）
  */
 function parseMarkdownContent(content: string, isDark: boolean): string {
+  let result = content
+  
   // 处理表格
   const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g
-  let result = content.replace(tableRegex, (_match, headerRow, bodyRows) => {
+  result = result.replace(tableRegex, (_match, headerRow, bodyRows) => {
     const headers = headerRow.split('|').map((h: string) => h.trim()).filter(Boolean)
     const rows = bodyRows.trim().split('\n').map((row: string) => 
       row.split('|').map((cell: string) => cell.trim()).filter(Boolean)
@@ -47,10 +259,10 @@ function parseMarkdownContent(content: string, isDark: boolean): string {
       ? 'w-full my-6 text-sm border-collapse'
       : 'w-full my-6 text-sm border-collapse'
     const thClass = isDark
-      ? 'text-left px-4 py-3 bg-zinc-800/50 border-b border-zinc-700 font-medium text-zinc-200'
-      : 'text-left px-4 py-3 bg-light-bg-secondary border-b border-light-border-DEFAULT font-medium'
+      ? 'text-left px-4 py-3 font-medium text-zinc-300 border-b-2 border-accent-green/30'
+      : 'text-left px-4 py-3 font-medium text-light-text-primary border-b-2 border-accent-green/40'
     const tdClass = isDark
-      ? 'px-4 py-3 border-b border-zinc-800/50 text-zinc-400'
+      ? 'px-4 py-3 border-b border-zinc-800/30 text-zinc-400'
       : 'px-4 py-3 border-b border-light-border-subtle text-light-text-secondary'
     
     const headerHtml = headers.map((h: string) => 
@@ -63,7 +275,7 @@ function parseMarkdownContent(content: string, isDark: boolean): string {
       ).join('')}</tr>`
     ).join('')
     
-    return `<div class="overflow-x-auto rounded-2xl ${isDark ? 'bg-zinc-900/50' : 'bg-light-bg-card border border-light-border-subtle'}"><table class="${tableClass}"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`
+    return `<div class="overflow-x-auto my-6 rounded-2xl ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-light-bg-card border border-light-border-subtle shadow-sm'}"><table class="${tableClass}"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`
   })
   
   // 处理标题
@@ -122,16 +334,37 @@ export function LessonPage() {
   // 渲染内容块
   const renderContent = (content: LessonContent, index: number) => {
     switch (content.type) {
-      case 'text':
+      case 'text': {
+        // 提取Mermaid代码块
+        const { parts } = extractMermaidBlocks(content.content)
+        
         return (
-          <div 
-            key={index} 
-            className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}
-            dangerouslySetInnerHTML={{ 
-              __html: parseMarkdownContent(content.content, isDark)
-            }}
-          />
+          <div key={index}>
+            {parts.map((part, partIndex) => {
+              if (part.type === 'mermaid') {
+                return (
+                  <MermaidDiagram 
+                    key={`mermaid-${index}-${partIndex}`}
+                    code={part.content}
+                    isDark={isDark}
+                    index={part.index || 0}
+                  />
+                )
+              } else {
+                return (
+                  <div
+                    key={`text-${index}-${partIndex}`}
+                    className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}
+                    dangerouslySetInnerHTML={{ 
+                      __html: parseMarkdownContent(part.content, isDark)
+                    }}
+                  />
+                )
+              }
+            })}
+          </div>
         )
+      }
       
       case 'code':
         return (

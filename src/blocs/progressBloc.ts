@@ -3,25 +3,27 @@ import { getAllLessons } from '../data/courses'
 import { useAuthBloc } from './authBloc'
 import { saveProgress, loadProgress } from '../services/supabaseService'
 
-/**
- * 学习进度状态接口
- */
-interface ProgressState {
-  // 已完成的课程 ID 列表 (格式: "phaseId:lessonId")
-  completedLessons: string[]
-  // 当前学习的课程
-  currentLesson: { phaseId: string; lessonId: string } | null
-  // 学习开始日期
-  startDate: string | null
-  // 连续学习天数
-  streakDays: number
-  // 最后学习日期
-  lastStudyDate: string | null
-  // 是否正在同步
-  isSyncing: boolean
-  // 是否已加载云端数据
-  isLoaded: boolean
-}
+  /**
+   * 学习进度状态接口
+   */
+  interface ProgressState {
+    // 已完成的课程 ID 列表 (格式: "phaseId:lessonId")
+    completedLessons: string[]
+    // 当前学习的课程
+    currentLesson: { phaseId: string; lessonId: string } | null
+    // 学习开始日期
+    startDate: string | null
+    // 连续学习天数
+    streakDays: number
+    // 最后学习日期
+    lastStudyDate: string | null
+    // 是否正在同步
+    isSyncing: boolean
+    // 是否已加载云端数据
+    isLoaded: boolean
+    // 最后加载时间（用于防抖）
+    lastLoadTime: number | null
+  }
 
 /**
  * 学习进度操作接口
@@ -78,15 +80,23 @@ export const useProgressBloc = create<ProgressState & ProgressActions>((set, get
   lastStudyDate: null,
   isSyncing: false,
   isLoaded: false,
+  lastLoadTime: null,
 
   /**
    * 从云端加载进度
    * 用户登录后调用，加载 Supabase 中的进度数据
    */
   loadFromCloud: async (userId: string) => {
-    if (get().isLoaded) return // 避免重复加载
+    // 防抖：5秒内不重复加载
+    const now = Date.now()
+    const lastLoad = get().lastLoadTime
+    if (lastLoad && now - lastLoad < 5000) {
+      console.log('加载防抖，跳过')
+      return
+    }
     
     try {
+      set({ lastLoadTime: now })
       const cloudProgress = await loadProgress(userId)
       
       if (cloudProgress) {
@@ -118,6 +128,12 @@ export const useProgressBloc = create<ProgressState & ProgressActions>((set, get
     // 如果用户未登录，不同步（理论上不应该走到这里）
     if (!currentUser) {
       console.warn('用户未登录，无法同步进度')
+      return
+    }
+
+    // 核心修复：数据未加载完成时不同步，防止空数据覆盖数据库
+    if (!get().isLoaded) {
+      console.log('数据未加载完成，跳过同步（防止覆盖数据库）')
       return
     }
 
@@ -280,7 +296,8 @@ export const useProgressBloc = create<ProgressState & ProgressActions>((set, get
       streakDays: 0,
       lastStudyDate: null,
       isSyncing: false,
-      isLoaded: false
+      isLoaded: false,
+      lastLoadTime: null
     })
   }
 }))
