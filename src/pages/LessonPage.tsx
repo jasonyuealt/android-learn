@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Clock, AlertTriangle, Lightbulb, BookOpen, Sparkles } from 'lucide-react'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useProgressBloc } from '../blocs/progressBloc'
 import { getLessonById, getAdjacentLessons, courseData } from '../data/courses'
 import { QuizSection } from '../components/Quiz'
 import { CodeBlock } from '../components/CodeBlock'
+import { ContentAssistant } from '../components/AI/ContentAssistant'
 import type { LessonContent } from '../data/courses'
 import mermaid from 'mermaid'
 
@@ -15,6 +16,7 @@ import mermaid from 'mermaid'
 function MermaidDiagram({ code, isDark, index }: { code: string, isDark: boolean, index: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showAssistant, setShowAssistant] = useState(false)
 
   useEffect(() => {
     const renderDiagram = async () => {
@@ -159,10 +161,43 @@ function MermaidDiagram({ code, isDark, index }: { code: string, isDark: boolean
   }
 
   return (
-    <div 
-      ref={containerRef}
-      className={`mermaid-container my-6 ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-white border border-light-border-subtle shadow-sm'}`}
-    />
+    <div className="relative my-6">
+      {/* Mermaid图表 */}
+      <div 
+        ref={containerRef}
+        className={`mermaid-container ${isDark ? 'bg-[#141417] shadow-[0_0_0_1px_rgba(255,255,255,0.04)]' : 'bg-white border border-light-border-subtle shadow-sm'}`}
+      />
+      
+      {/* PC端：右上角AI解析按钮 */}
+      <button 
+        onClick={() => setShowAssistant(true)}
+        className="hidden md:flex absolute top-3 right-3 items-center gap-1.5 px-3 py-1.5 rounded-lg
+                   bg-accent-green/10 hover:bg-accent-green/20 text-accent-green
+                   text-sm font-medium transition-all duration-200 cursor-pointer"
+        title="AI解析流程图"
+      >
+        <Sparkles size={14} /> AI解析
+      </button>
+      
+      {/* 移动端：下方AI解析按钮 */}
+      <button 
+        onClick={() => setShowAssistant(true)}
+        className="flex md:hidden w-full mt-3 py-3 items-center justify-center gap-2 rounded-xl
+                   bg-accent-green/10 hover:bg-accent-green/15 active:bg-accent-green/20 text-accent-green 
+                   font-medium transition-all duration-200 cursor-pointer"
+      >
+        <Sparkles size={16} /> AI解析这个流程图
+      </button>
+      
+      {/* AI助手组件 */}
+      <ContentAssistant
+        isOpen={showAssistant}
+        onClose={() => setShowAssistant(false)}
+        contentType="mermaid"
+        content={code}
+        isDark={isDark}
+      />
+    </div>
   )
 }
 
