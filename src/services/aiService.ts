@@ -9,7 +9,7 @@ const isDev = import.meta.env.DEV
 // AI API 配置（仅开发环境使用）
 const DEV_API_BASE = import.meta.env.VITE_AI_API_BASE || 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
 const DEV_API_KEY = import.meta.env.VITE_AI_API_KEY || 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-32b'
+const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-coder-480b'
 
 // 题目类型枚举
 export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false' | 'fill_blank'
@@ -23,7 +23,9 @@ export class QuizQuestion {
     public options: string[],           // 选择题选项 / 判断题为 ['正确', '错误']
     public correctIndex: number | number[], // 单选为数字，多选为数组，填空为 -1
     public correctAnswer?: string,       // 填空题答案
-    public explanation: string = ''
+    public explanation: string = '',
+    public codeSnippet?: string,        // 代码片段（用于代码评估题）
+    public scenario?: string             // 场景描述（用于场景应用题）
   ) {}
 }
 
@@ -68,6 +70,47 @@ function estimateQuestionCount(contentLength: number): number {
 }
 
 /**
+ * 验证题目的基本合理性
+ * @param q 题目对象
+ * @returns 验证结果
+ */
+function validateQuestion(q: QuizQuestion): { valid: boolean; issue?: string } {
+  // 1. 选项数量检查
+  if (q.type !== 'fill_blank' && q.options.length < 2) {
+    return { valid: false, issue: '选项数量不足' }
+  }
+  
+  // 2. 正确答案索引检查
+  if (q.type === 'single_choice' || q.type === 'true_false') {
+    if (typeof q.correctIndex !== 'number' || q.correctIndex >= q.options.length || q.correctIndex < 0) {
+      return { valid: false, issue: '正确答案索引错误' }
+    }
+  }
+  
+  if (q.type === 'multiple_choice') {
+    if (!Array.isArray(q.correctIndex) || q.correctIndex.length === 0) {
+      return { valid: false, issue: '多选题缺少正确答案' }
+    }
+    if (q.correctIndex.some((idx: number) => idx >= q.options.length || idx < 0)) {
+      return { valid: false, issue: '多选题答案索引超出范围' }
+    }
+  }
+  
+  // 3. 避免纯记忆题（关键词检测）
+  const memoryKeywords = ['是什么', '叫什么', '定义是', '关键字是', '名称是']
+  if (memoryKeywords.some(kw => q.question.includes(kw))) {
+    return { valid: false, issue: '疑似纯记忆题，不符合学习目标' }
+  }
+  
+  // 4. 填空题必须有答案
+  if (q.type === 'fill_blank' && !q.correctAnswer) {
+    return { valid: false, issue: '填空题缺少正确答案' }
+  }
+  
+  return { valid: true }
+}
+
+/**
  * 生成课程小测验（支持错题重测和多种题型）
  * @param lessonTitle 课程标题
  * @param lessonContent 课程内容摘要
@@ -78,21 +121,33 @@ export async function generateQuiz(
   lessonContent: string,
   history?: QuizHistory
 ): Promise<QuizQuestion[]> {
-  // 动态计算题目数量
-  const baseCount = estimateQuestionCount(lessonContent.length)
-  
   // 准备错题信息（如果有历史记录且未满分）
   const wrongQuestions = history?.wrongQuestions || []
   const previousQuestions = history?.questions || []
   const attemptCount = history?.attemptCount || 0
   
-  // 计算新题数量：错题数 + 补充的新题
+  // 计算题目数量
   const wrongCount = wrongQuestions.length
-  const newQuestionCount = Math.max(baseCount - wrongCount, 2) // 至少出 2 道新题
-  const totalCount = wrongCount + newQuestionCount
+  let totalCount: number
+  
+  if (wrongCount > 0) {
+    // 错题重测：基于错题数量出题（可以多出一些来多角度考察）
+    // 至少出错题数量，最多出基础题目数
+    const baseCount = estimateQuestionCount(lessonContent.length)
+    totalCount = Math.min(Math.max(wrongCount, 5), baseCount)
+  } else {
+    // 首次测验：根据课程内容长度动态计算
+    totalCount = estimateQuestionCount(lessonContent.length)
+  }
   
   // 构建 prompt
   let prompt = `你是一位 Android 开发教学专家。请根据以下课程内容生成测验题目。
+
+【重要】题目必须完全基于课程内容
+- 所有题目必须直接来源于课程中讲解的知识点
+- 不要出现课程中未提及的概念、API或技术
+- 题目的难度和深度应与课程内容保持一致
+- 每道题都应该能在课程内容中找到对应的知识点
 
 课程标题：${lessonTitle}
 课程内容摘要：${lessonContent}
@@ -101,31 +156,190 @@ export async function generateQuiz(
 
   // 如果有错题，需要加入错题（换个问法或换选项顺序）
   if (wrongCount > 0) {
-    prompt += `【重要】学习者上次测验有 ${wrongCount} 道题答错了，请先针对这些错题的知识点重新出题（可以换个角度或问法）：
+    prompt += `【重要】这是一次错题重测，学习者上次测验有 ${wrongCount} 道题答错了。
+请**只针对**这些错题涉及的知识点出 ${totalCount} 道题，从多个角度巩固这些知识点：
+
 ${wrongQuestions.map((wq, i) => `${i + 1}. 原题：${wq.question.question}
    正确答案：${wq.question.type === 'fill_blank' ? wq.question.correctAnswer : wq.question.options[wq.question.correctIndex as number]}
-   学习者答错了这个知识点，请针对同一知识点换个方式出题。`).join('\n')}
+   学习者答错了这个知识点，需要重点巩固。`).join('\n')}
+
+【错题重测要求】
+- 所有 ${totalCount} 道题都必须围绕上述错题涉及的知识点
+- 可以从不同角度、场景、难度来考察同一知识点
+- 如果错题较少，可以针对同一知识点出多道不同形式的题目
+- 禁止引入错题以外的新知识点
 
 `
   }
 
-  // 如果之前出过题，提示避免重复
-  if (previousQuestions.length > 0 && attemptCount > 0) {
+  // 如果之前出过题，提示避免重复（但错题重测时跳过此提示）
+  if (previousQuestions.length > 0 && attemptCount > 0 && wrongCount === 0) {
     prompt += `【注意】以下是之前已出过的题目，请尽量避免出相同或过于相似的题目，以扩大知识点覆盖面：
 ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
 
 `
   }
 
-  prompt += `请生成 ${totalCount} 道题目，要求：
-1. 题型多样化，包括：
-   - single_choice（单选题）：4个选项
-   - multiple_choice（多选题）：4个选项，2-3个正确答案
-   - true_false（判断题）：判断陈述是否正确
-   - fill_blank（填空题）：填写关键词或代码片段
-2. 各种题型尽量均衡分布
-3. 难度适中，紧扣课程内容
-4. 尽量覆盖课程的不同知识点
+  prompt += `请生成 ${totalCount} 道题目。
+
+【严格约束】出题范围限制
+- 只能基于"课程内容"中明确出现的代码示例、概念、API
+- 如果课程内容中没有讲到某个知识点，绝对不能出现在题目中
+- 选项中的所有代码写法、术语、API，必须在课程内容中出现过
+- 题目难度不能高于课程内容的难度
+- 禁止引入课程外的知识点（例如：课程讲val/var，不能问lateinit）
+
+【自检清单】生成题目后，请自我检查：
+1. 题目中的每个概念是否在课程内容中出现？
+2. 选项中的代码是否基于课程内的示例？
+3. 如果课程只讲了基础用法，是否避免了高级用法？
+4. 题目是否可以通过课程内容直接回答，无需额外知识？
+
+【核心原则】题目必须基于当前课程内容
+- 仔细阅读上述课程内容
+- 只出现课程中明确讲解过的知识点
+- 题目难度与课程深度匹配
+- 确保学员通过本课程学习后能够回答这些题目
+
+【学习目标】本课程面向**具有AI辅助能力的初学者**，目标是培养"理解代码"和"评估代码质量"的能力，而非纯记忆。
+
+【题目设计原则】
+1. 70%场景应用题：基于课程中的实际案例，给定需求选择合适方案
+2. 20%概念理解题：理解课程讲解的核心概念之间的区别
+3. 10%代码评估题：评估课程中出现的代码模式是否存在问题
+
+【题目难度分级】请严格按照以下比例生成：
+- 简单（50%）：直接考察课程中明确讲解的概念，选项差异明显，一眼能看出答案区别
+- 中等（40%）：需要理解课程内容后进行简单推理，结合课程中2个知识点
+- 困难（10%）：场景应用，需要综合课程中3个知识点，但仍在课程范围内
+
+禁止生成"困难+"级别题目（需要课程外知识或复杂推理）
+
+【题型要求】
+- single_choice（单选）：场景选择题，问"应该用哪个/怎么做"而非"是什么/叫什么"
+- multiple_choice（多选）：代码问题识别，"以下哪些可能导致问题"
+- true_false（判断）：判断实践性陈述的正确性
+- fill_blank（填空）：填写课程中强调的关键API或语法关键字
+
+【代码片段使用规则 - 重要】
+codeSnippet 字段应该谨慎使用，仅在以下情况添加：
+
+✓ 代码是评估对象（评估题）：
+  示例：
+  {
+    "codeSnippet": "viewModelScope.launch {\n  val user = fetchUser()\n  updateUI(user.name)\n}",
+    "question": "以上代码可能存在什么问题？",
+    "options": ["主线程阻塞", "空指针异常", "内存泄漏", "没有问题"]
+  }
+
+✓ 代码提供必要的技术背景：
+  示例：
+  {
+    "codeSnippet": "class UserRepository {\n  suspend fun fetchUser(): User\n}",
+    "question": "在ViewModel中调用fetchUser()时，应该使用哪个作用域？",
+    "options": ["GlobalScope", "viewModelScope", "lifecycleScope", "MainScope"]
+  }
+
+✗ 不要使用的情况：
+- 代码片段的内容和选项重复（如codeSnippet显示"data class User(var name: String)"，选项A也是"data class User(var name: String)"）
+- 代码片段只是装饰，与题目无实质关联
+- 题目可以通过文字清晰表达，不需要代码示例
+- 题目问"以下哪些写法"，但这些"写法"应该在选项里，而不是codeSnippet里
+
+【场景描述使用规则 - 重要】
+scenario 字段应该谨慎使用，仅在以下情况添加：
+✓ 代码需要业务背景才能评估（如"这是实时聊天应用的消息处理代码"）
+✓ 题目需要特定约束条件（如"需要在后台持续运行"）
+✓ 提供题目中无法表达的上下文信息
+
+✗ 不要使用的情况：
+- 场景描述和题目重复表达相同信息
+- 场景描述只是把题目换了种说法
+- 题目本身已经清晰完整
+
+【示例对比】
+
+✗ 错误示例1（冗余 - scenario）：
+{
+  "scenario": "设计用户信息数据模型，要求属性不可变且需要支持快速复制",
+  "question": "当需要设计一个不可变的数据模型（如表示网络请求返回的用户信息）时，应该优先选择哪种类类型？"
+}
+// ❌ 场景和题目重复了！
+
+✗ 错误示例2（冗余 - codeSnippet）：
+{
+  "codeSnippet": "data class User(var name: String)\ndata class Settings(val theme: String = \"dark\")",
+  "question": "以下哪些data class的写法可能导致潜在问题？",
+  "options": [
+    "data class User(var name: String)",  // ❌ 和codeSnippet重复！
+    "data class Product(val id: Int, private val price: Double)",
+    "data class Profile(val name: String, @Transient val sessionToken: String)",
+    "data class Settings(val theme: String = \"dark\")"  // ❌ 和codeSnippet重复！
+  ]
+}
+// ❌ codeSnippet的内容出现在选项里，造成混乱！
+
+✓ 正确示例1（无需scenario和codeSnippet）：
+{
+  "question": "当需要设计一个不可变的数据模型（如用户信息、网络响应数据）且需要支持快速复制时，应该优先选择哪种类类型？"
+}
+// ✅ 题目已包含所有信息
+
+✓ 正确示例2（codeSnippet作为评估对象）：
+{
+  "codeSnippet": "viewModelScope.launch {\n  val user = repository.fetchUser()\n  textView.text = user.name\n}",
+  "question": "以上代码可能存在哪些问题？",
+  "options": [
+    "可能在后台线程更新UI",
+    "没有处理网络异常",
+    "可能导致内存泄漏",
+    "缺少空安全检查"
+  ],
+  "correctIndex": [1, 3]
+}
+// ✅ codeSnippet是评估对象，选项不重复代码内容
+
+✓ 正确示例3（scenario+codeSnippet组合使用）：
+{
+  "scenario": "你正在开发一个电商应用，购物车数据需要在用户切换到其他应用后仍能继续处理订单",
+  "codeSnippet": "viewModelScope.launch { processCart() }",
+  "question": "在上述场景中，这段代码可能会导致什么问题？",
+  "options": [
+    "用户切换应用后订单处理会中断",
+    "可能阻塞主线程",
+    "无法处理网络错误",
+    "没有问题"
+  ],
+  "correctIndex": 0
+}
+// ✅ scenario提供业务背景，codeSnippet是评估对象，题目关联两者
+
+✓ 正确示例4（多选题 - 选项本身是代码，无需codeSnippet）：
+{
+  "question": "以下哪些data class的写法可能导致潜在问题？",
+  "options": [
+    "data class User(var name: String)",
+    "data class Product(val id: Int, private val price: Double)",
+    "data class Profile(val name: String, @Transient val sessionToken: String)",
+    "data class Settings(val theme: String = \"dark\")"
+  ],
+  "correctIndex": [0, 1, 2]
+}
+// ✅ 选项本身就是待评估的代码，不需要额外的codeSnippet
+
+【示例好题】
+✓ "你需要同时请求用户信息和订单列表（互不依赖），应该用："
+✓ "以下代码可能导致哪些问题：viewModelScope.launch { val user = fetchUser(); updateUI(user.name) }"
+✓ "在MVVM架构中，网络请求应该放在哪一层？"
+
+【避免的题型】
+✗ "Kotlin中声明不可变变量的关键字是什么？"（纯记忆）
+✗ "data class的定义是什么？"（纯记忆）
+✗ "协程的英文名称是？"（无意义记忆）
+
+【字段说明】
+- scenario: 场景描述（可选，仅在真正需要额外背景时使用，大部分题目不需要）
+- codeSnippet: 代码片段（可选，用于代码评估题）
 
 请严格按照以下 JSON 格式返回（不要添加任何其他文字）：
 {
@@ -133,7 +347,7 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
     {
       "id": "q1",
       "type": "single_choice",
-      "question": "题目内容",
+      "question": "题目内容（应该包含所有必要信息，使scenario字段通常不必要）",
       "options": ["选项A", "选项B", "选项C", "选项D"],
       "correctIndex": 0,
       "explanation": "答案解析"
@@ -144,7 +358,9 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
       "question": "以下哪些说法是正确的？",
       "options": ["选项A", "选项B", "选项C", "选项D"],
       "correctIndex": [0, 2],
-      "explanation": "答案解析"
+      "explanation": "答案解析",
+      "codeSnippet": "// 仅在需要时添加代码\nval user = User()",
+      "scenario": "仅在代码需要特定业务背景时添加"
     },
     {
       "id": "q3",
@@ -157,10 +373,10 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
     {
       "id": "q4",
       "type": "fill_blank",
-      "question": "在 Kotlin 中，使用 _____ 关键字声明不可变变量",
+      "question": "在协程中，使用 _____ 可以并行执行多个请求",
       "options": [],
       "correctIndex": -1,
-      "correctAnswer": "val",
+      "correctAnswer": "async",
       "explanation": "答案解析"
     }
   ]
@@ -171,6 +387,9 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
 - multiple_choice: correctIndex 是正确答案索引的数组，如 [0, 2]
 - true_false: options 固定为 ["正确", "错误"]，correctIndex 为 0 或 1
 - fill_blank: correctIndex 为 -1，答案放在 correctAnswer 字段
+- 所有题目必须包含 explanation 解析
+- 题目要准确无误，避免知识性错误（如data class的copy()方法是自动生成的）
+- scenario 字段尽量不使用，只在题目无法完整表达需求时才添加
 - 只返回 JSON，不要有其他内容`
 
   try {
@@ -224,8 +443,8 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
 
     const parsed = JSON.parse(jsonMatch[0])
     
-    // 转换为 QuizQuestion 对象数组
-    return parsed.questions.map((q: {
+    // 转换为 QuizQuestion 对象数组并验证
+    const questions = parsed.questions.map((q: {
       id: string
       type: QuestionType
       question: string
@@ -233,6 +452,8 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
       correctIndex: number | number[]
       correctAnswer?: string
       explanation: string
+      codeSnippet?: string
+      scenario?: string
     }) => new QuizQuestion(
       q.id,
       q.type || 'single_choice',
@@ -240,8 +461,28 @@ ${previousQuestions.slice(-10).map(q => `- ${q.question}`).join('\n')}
       q.options || [],
       q.correctIndex,
       q.correctAnswer,
-      q.explanation
+      q.explanation,
+      q.codeSnippet,
+      q.scenario
     ))
+    
+    // 验证题目质量
+    const validatedQuestions = questions.filter((q: QuizQuestion) => {
+      const validation = validateQuestion(q)
+      if (!validation.valid) {
+        console.warn(`题目验证失败: ${q.question} - ${validation.issue}`)
+        return false
+      }
+      return true
+    })
+    
+    // 如果验证后题目数量不足，返回所有题目（避免没有题目）
+    if (validatedQuestions.length < Math.max(2, questions.length * 0.5)) {
+      console.warn('验证后题目数量不足，使用原始题目')
+      return questions
+    }
+    
+    return validatedQuestions
   } catch (error) {
     console.error('生成测验失败:', error)
     throw error

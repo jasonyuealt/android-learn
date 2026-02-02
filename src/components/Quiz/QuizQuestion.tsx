@@ -8,6 +8,7 @@ import { checkAnswer, type QuizQuestion } from '../../services/aiService'
 import { SingleChoiceOptions } from './QuestionOptions/SingleChoiceOptions'
 import { MultipleChoiceOptions } from './QuestionOptions/MultipleChoiceOptions'
 import { FillBlankInput } from './QuestionOptions/FillBlankInput'
+import { ReportButton } from './ReportButton'
 
 interface QuizQuestionProps {
   question: QuizQuestion
@@ -93,6 +94,36 @@ export function QuizQuestionComponent({
         />
       </div>
 
+      {/* 场景描述（如果有） */}
+      {question.scenario && (
+        <div className={`
+          mb-6 p-3.5 rounded-2xl border transition-all duration-200
+          ${isDark 
+            ? 'bg-accent-blue/5 border-accent-blue/20' 
+            : 'bg-blue-50/50 border-blue-100'
+          }
+        `}>
+          <p className={`text-sm leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
+            {question.scenario}
+          </p>
+        </div>
+      )}
+
+      {/* 代码示例（如果有） */}
+      {question.codeSnippet && (
+        <div className="mb-6">
+          <pre className={`
+            p-4 rounded-2xl text-sm overflow-x-auto font-mono border transition-all duration-200
+            ${isDark 
+              ? 'bg-zinc-900 text-zinc-300 border-zinc-800' 
+              : 'bg-gray-50 text-gray-800 border-gray-200'
+            }
+          `}>
+            <code>{question.codeSnippet}</code>
+          </pre>
+        </div>
+      )}
+
       {/* 题目 */}
       <h4 className="text-lg font-medium mb-6">{question.question}</h4>
 
@@ -118,7 +149,7 @@ export function QuizQuestionComponent({
                 : <XCircle size={14} />
               }
             </div>
-            <div>
+            <div className="flex-1">
               <p className={`text-sm font-medium mb-1 ${
                 isCurrentAnswerCorrect 
                   ? 'text-accent-green' 
@@ -126,16 +157,23 @@ export function QuizQuestionComponent({
               }`}>
                 {isCurrentAnswerCorrect ? '回答正确！' : '回答错误'}
               </p>
-              <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+              <p className={`text-sm mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
                 {question.explanation}
               </p>
+              {/* 报告错题按钮 */}
+              <ReportButton
+                questionId={question.id}
+                questionText={question.question}
+                isDark={isDark}
+                onReport={() => console.log('已报告题目:', question.id)}
+              />
             </div>
           </div>
         </div>
       )}
 
-      {/* 操作按钮 */}
-      <div className="flex justify-end">
+      {/* 移动端：底部按钮 */}
+      <div className="flex justify-end md:hidden">
         {!showExplanation ? (
           <button
             onClick={onConfirm}

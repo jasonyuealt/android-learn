@@ -187,6 +187,40 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
   // 当前题目
   const currentQuestion = questions[currentIndex]
 
+  // 渲染操作按钮（PC端显示在header）
+  const renderActionButton = () => {
+    if (status !== 'quiz') return null
+    
+    if (!showExplanation) {
+      return (
+        <button
+          onClick={handleConfirmAnswer}
+          disabled={!canSubmitAnswer()}
+          className={`
+            inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200
+            ${canSubmitAnswer()
+              ? 'bg-accent-blue text-white cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20' 
+              : isDark 
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }
+          `}
+        >
+          确认答案
+        </button>
+      )
+    } else {
+      return (
+        <button
+          onClick={handleNextQuestion}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm bg-accent-blue text-white font-medium cursor-pointer hover:shadow-lg hover:shadow-accent-blue/20 transition-all duration-200"
+        >
+          {currentIndex < questions.length - 1 ? '下一题' : '查看结果'}
+        </button>
+      )
+    }
+  }
+
   return (
     <section className={`
       mt-12 rounded-3xl overflow-hidden
@@ -202,6 +236,7 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
         currentIndex={currentIndex}
         totalQuestions={questions.length}
         isDark={isDark}
+        actionButton={renderActionButton()}
       />
 
       {/* 内容区域 */}

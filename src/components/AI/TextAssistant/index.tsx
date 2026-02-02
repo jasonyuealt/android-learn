@@ -20,7 +20,7 @@ interface Message {
 const isDev = import.meta.env.DEV
 const DEV_API_BASE = import.meta.env.VITE_AI_API_BASE || 'https://cerebras-proxy.brain.loocaa.com:1443/v1'
 const DEV_API_KEY = import.meta.env.VITE_AI_API_KEY || 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-32b'
+const DEV_MODEL = import.meta.env.VITE_AI_MODEL || 'qwen-3-coder-480b'
 
 export function AiTextAssistant() {
   const [isOpen, setIsOpen] = useState(false)

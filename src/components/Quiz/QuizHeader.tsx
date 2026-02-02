@@ -5,6 +5,7 @@
 
 import { Brain } from 'lucide-react'
 import { getQuestionTypeName, type QuizQuestion } from '../../services/aiService'
+import { ReactNode } from 'react'
 
 interface QuizHeaderProps {
   status: 'idle' | 'loading' | 'quiz' | 'result' | 'error'
@@ -12,9 +13,10 @@ interface QuizHeaderProps {
   currentIndex: number
   totalQuestions: number
   isDark: boolean
+  actionButton?: ReactNode  // 新增：用于显示操作按钮
 }
 
-export function QuizHeader({ status, currentQuestion, currentIndex, totalQuestions, isDark }: QuizHeaderProps) {
+export function QuizHeader({ status, currentQuestion, currentIndex, totalQuestions, isDark, actionButton }: QuizHeaderProps) {
   return (
     <div className={`
       px-6 py-4 flex items-center justify-between
@@ -39,19 +41,27 @@ export function QuizHeader({ status, currentQuestion, currentIndex, totalQuestio
           </p>
         </div>
       </div>
-      {status === 'quiz' && currentQuestion && (
-        <div className="flex items-center gap-3">
-          <span className={`
-            text-xs px-2 py-1 rounded-full
-            ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-500'}
-          `}>
-            {getQuestionTypeName(currentQuestion.type)}
-          </span>
-          <span className={`text-sm font-medium ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
-            {currentIndex + 1} / {totalQuestions}
-          </span>
-        </div>
-      )}
+      <div className="flex items-center gap-3">
+        {status === 'quiz' && currentQuestion && (
+          <>
+            <span className={`
+              text-xs px-2 py-1 rounded-full
+              ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-500'}
+            `}>
+              {getQuestionTypeName(currentQuestion.type)}
+            </span>
+            <span className={`text-sm font-medium ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
+              {currentIndex + 1} / {totalQuestions}
+            </span>
+          </>
+        )}
+        {/* PC端显示操作按钮 */}
+        {actionButton && (
+          <div className="hidden md:block">
+            {actionButton}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -516,8 +516,8 @@ export function LessonPage() {
         lessonContent={lesson.contents
           .filter(c => c.type === 'text')
           .map(c => c.content)
-          .join('\n')
-          .slice(0, 2000)}
+          .join('\n\n')
+          .slice(0, 12000)}  // 只传主要描述，减少token消耗
         onComplete={(score) => {
           console.log(`测验完成，得分: ${score}`)
         }}
