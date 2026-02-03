@@ -6,9 +6,7 @@ import { useProgressBloc } from './blocs/progressBloc'
 import { BackgroundDecoration } from './components/BackgroundDecoration'
 import { Navbar } from './components/Navbar'
 import { BottomNav } from './components/BottomNav'
-import { KotlinPlayground } from './components/KotlinPlayground'
 import { AiTextAssistant } from './components/AI/TextAssistant'
-import { AiPageAssistant } from './components/AI/PageAssistant'
 import { HomePage } from './pages/HomePage'
 import { LearnPage } from './pages/LearnPage'
 import { LessonPage } from './pages/LessonPage'
@@ -23,8 +21,6 @@ import { RegisterPage } from './pages/RegisterPage'
  * 主布局组件（带导航栏）
  */
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false)
-
   return (
     <div className="min-h-screen relative">
       {/* 背景装饰 */}
@@ -41,17 +37,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       {/* 底部导航 */}
       <BottomNav />
 
-      {/* Kotlin 在线测试浮动按钮（点击打开 AI 助手） */}
-      <KotlinPlayground onOpenAI={() => setIsAIAssistantOpen(true)} />
-
       {/* AI 文本分析助手（选中文本时显示） */}
       <AiTextAssistant />
-
-      {/* AI 页面助手（点击右下角按钮打开） */}
-      <AiPageAssistant 
-        isOpen={isAIAssistantOpen} 
-        onClose={() => setIsAIAssistantOpen(false)} 
-      />
     </div>
   )
 }

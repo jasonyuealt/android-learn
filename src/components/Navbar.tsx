@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, ChevronDown } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 import { Logo } from './Logo'
-import { KotlinEditor } from './KotlinPlayground'
+import { KotlinEditor } from './KotlinEditor'
 import { useThemeBloc } from '../blocs/themeBloc'
 import { useAuthBloc } from '../blocs/authBloc'
 

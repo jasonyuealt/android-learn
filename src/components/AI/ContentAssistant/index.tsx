@@ -23,6 +23,7 @@ export function ContentAssistant({
   const [isVisible, setIsVisible] = useState(false)
   const [initialMessage, setInitialMessage] = useState<Message | null>(null)
   const [inputValue, setInputValue] = useState('')
+  const [typingCompletedContent, setTypingCompletedContent] = useState('')  // 跟踪已完成打字的内容
   
   const {
     messages,
@@ -37,6 +38,17 @@ export function ContentAssistant({
   } = useAIChat(contentType)
   
   const uiConfig = getUIConfig(contentType)
+
+  // 处理打字机完成，将内容添加到 messages
+  const handleTypingComplete = (content: string) => {
+    // 避免重复添加相同内容
+    if (content && content !== typingCompletedContent) {
+      setTypingCompletedContent(content)
+      setMessages(prev => [...prev, { role: 'assistant', content }])
+      // 清空 targetContent，避免重复显示
+      setTargetContent('')
+    }
+  }
 
   // 打开时初始化
   useEffect(() => {
@@ -69,6 +81,7 @@ export function ContentAssistant({
         setInputValue('')
         setTargetContent('')
         setIsStreamComplete(false)
+        setTypingCompletedContent('')  // 重置打字完成内容
       }, 200)
     }
   }, [isOpen])
@@ -99,6 +112,7 @@ export function ContentAssistant({
       setInputValue('')
       setTargetContent('')
       setIsStreamComplete(false)
+      setTypingCompletedContent('')  // 重置打字完成内容
       await callAIStream([initialMessage])
     }
   }
@@ -238,6 +252,7 @@ export function ContentAssistant({
             isLoading={isLoading}
             onSend={handleSend}
             onReset={handleReset}
+            onTypingComplete={handleTypingComplete}
             uiConfig={uiConfig}
             isDark={isDark}
           />

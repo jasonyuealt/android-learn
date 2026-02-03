@@ -1,6 +1,7 @@
 /**
  * 智能自动滚动 Hook
  * 用户没滚动时自动滚动，用户一旦滚动就永久停止
+ * 支持移动端触摸和PC端鼠标滚轮
  */
 
 import { useEffect, useRef, useCallback } from 'react'
@@ -29,15 +30,22 @@ export function useAutoScroll() {
     const container = scrollContainerRef.current
     if (!container) return
 
+    // 移动端：监听触摸开始
     const handleTouchStart = () => {
-      // 用户一旦触摸滚动，就标记为已滚动
+      userHasScrolledRef.current = true
+    }
+
+    // PC端：监听鼠标滚轮
+    const handleWheel = () => {
       userHasScrolledRef.current = true
     }
 
     container.addEventListener('touchstart', handleTouchStart, { passive: true })
+    container.addEventListener('wheel', handleWheel, { passive: true })
     
     return () => {
       container.removeEventListener('touchstart', handleTouchStart)
+      container.removeEventListener('wheel', handleWheel)
     }
   }, [])
 

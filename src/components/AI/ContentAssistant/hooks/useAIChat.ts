@@ -5,7 +5,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { isDev, DEV_API_BASE, DEV_API_KEY, DEV_MODEL, getSystemPrompt } from '../config'
-import { filterThinkTags } from '../../PageAssistant/utils/markdown'
+import { filterThinkTags } from '../../shared/utils/markdown'
 import type { Message } from '../types'
 
 export function useAIChat(contentType: 'mermaid' | 'code') {

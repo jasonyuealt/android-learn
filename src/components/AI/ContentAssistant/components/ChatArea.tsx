@@ -3,10 +3,10 @@
  * 右侧显示消息列表和输入框
  */
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Send } from 'lucide-react'
-import { useTypingEffect } from '../../PageAssistant/hooks/useTypingEffect'
-import { renderMarkdown } from '../../PageAssistant/utils/markdown'
+import { useTypingEffect } from '../../shared/hooks/useTypingEffect'
+import { renderMarkdown } from '../../shared/utils/markdown'
 import { useAutoScroll } from '../hooks/useAutoScroll'
 import type { Message, UIConfig } from '../types'
 
@@ -19,6 +19,7 @@ interface ChatAreaProps {
   isLoading: boolean
   onSend: () => void
   onReset?: () => void
+  onTypingComplete?: (content: string) => void  // 新增：打字机完成回调
   uiConfig: UIConfig
   isDark: boolean
 }
@@ -32,11 +33,25 @@ export function ChatArea({
   isLoading,
   onSend,
   onReset,
+  onTypingComplete,
   uiConfig,
   isDark
 }: ChatAreaProps) {
-  const { displayedContent, isTyping } = useTypingEffect(targetContent, isStreamComplete)
+  const { displayedContent, isTyping, isComplete } = useTypingEffect(targetContent, isStreamComplete)
   const { scrollContainerRef, messagesEndRef, scrollToBottom, resetAutoScroll } = useAutoScroll()
+
+  // 缓存打字机效果的 Markdown 渲染结果，避免频繁重新渲染
+  const renderedDisplayedContent = useMemo(
+    () => displayedContent ? renderMarkdown(displayedContent, isDark) : '',
+    [displayedContent, isDark]
+  )
+
+  // 打字机完成时的回调
+  useEffect(() => {
+    if (isComplete && targetContent && onTypingComplete) {
+      onTypingComplete(targetContent)
+    }
+  }, [isComplete, targetContent, onTypingComplete])
 
   // 自动滚动：每次内容更新都尝试滚动（内部会判断是否需要）
   useEffect(() => {
@@ -102,7 +117,7 @@ export function ChatArea({
             >
               <div 
                 className="ai-response-content"
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(displayedContent, isDark) }}
+                dangerouslySetInnerHTML={{ __html: renderedDisplayedContent }}
               />
               {isTyping && (
                 <span className={`inline-block w-0.5 h-4 ml-0.5 ${uiConfig.cursorColor} animate-pulse align-middle`} />
@@ -133,28 +148,46 @@ export function ChatArea({
         px-4 md:px-6 py-3 md:py-4 border-t shrink-0
         ${isDark ? 'border-zinc-800' : 'border-light-border-DEFAULT'}
       `}>
-        <div className="flex items-center gap-2 md:gap-3">
-          <input
-            type="text"
+        <div className="flex items-end gap-2 md:gap-3">
+          <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSend()}
-            placeholder="继续提问..."
+            onKeyDown={(e) => {
+              // Cmd/Ctrl + Enter 发送
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                onSend()
+              }
+              // 单独 Enter 换行（默认行为，不需要处理）
+            }}
+            placeholder="继续提问...（⌘/Ctrl + Enter 发送）"
+            rows={1}
             className={`
-              flex-1 px-3 md:px-4 py-2 md:py-2.5 rounded-full text-xs md:text-sm
-              transition-colors duration-150
+              flex-1 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl text-xs md:text-sm
+              transition-colors duration-150 resize-none
               focus:outline-none focus:ring-2 ${uiConfig.ringColor}
+              max-h-32 overflow-y-auto
               ${isDark 
                 ? 'bg-zinc-800/50 text-zinc-200 placeholder-zinc-500' 
                 : 'bg-light-bg-secondary text-light-text-primary placeholder-light-text-muted'
               }
             `}
+            style={{
+              minHeight: '2.5rem',
+              height: 'auto'
+            }}
+            onInput={(e) => {
+              // 自动调整高度
+              const target = e.target as HTMLTextAreaElement
+              target.style.height = 'auto'
+              target.style.height = Math.min(target.scrollHeight, 128) + 'px'
+            }}
           />
           <button
             onClick={onSend}
             disabled={!inputValue.trim() || isLoading || isTyping}
             className={`
-              p-2 md:p-2.5 rounded-full transition-all duration-150 cursor-pointer
+              p-2 md:p-2.5 rounded-full transition-all duration-150 cursor-pointer shrink-0
               ${inputValue.trim() && !isLoading && !isTyping
                 ? `${uiConfig.buttonBg} text-white ${uiConfig.buttonHover}`
                 : isDark 

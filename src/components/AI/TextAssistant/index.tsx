@@ -7,8 +7,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Sparkles, X, Send, RotateCcw } from 'lucide-react'
 import { useThemeBloc } from '../../../blocs/themeBloc'
 import { useTextSelection } from './hooks/useTextSelection'
-import { useTypingEffect } from '../PageAssistant/hooks/useTypingEffect'
-import { renderMarkdown, filterThinkTags } from '../PageAssistant/utils/markdown'
+import { useTypingEffect } from '../shared/hooks/useTypingEffect'
+import { renderMarkdown, filterThinkTags } from '../shared/utils/markdown'
 
 // 消息类型
 interface Message {

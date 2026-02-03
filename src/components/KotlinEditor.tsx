@@ -4,8 +4,9 @@ import { Logo } from './Logo'
 import { useThemeBloc } from '../blocs/themeBloc'
 
 /**
- * Kotlin 编辑器核心组件（可复用）
+ * Kotlin 编辑器组件
  * 提供代码编辑、运行、输出等功能
+ * 用于课程页面的"在线测验"按钮
  */
 export function KotlinEditor({ 
   isOpen, 
@@ -330,34 +331,6 @@ export function KotlinEditor({
           </div>
         </div>
       )}
-    </>
-  )
-}
-
-/**
- * Kotlin 在线测试组件 - 右下角浮动按钮
- * 点击打开 AI 页面助手
- */
-export function KotlinPlayground({ onOpenAI }: { onOpenAI?: () => void }) {
-  return (
-    <>
-      {/* 浮动按钮 - 打开 AI 助手 */}
-      <button
-        onClick={onOpenAI}
-        className={`
-          fixed bottom-24 right-4 md:bottom-8 md:right-6 z-40
-          w-12 h-12 md:w-14 md:h-14 rounded-2xl
-          flex items-center justify-center
-          shadow-lg cursor-pointer
-          transition-all duration-300 ease-out
-          hover:scale-105 hover:shadow-xl hover:rounded-3xl
-          active:scale-95
-          bg-gradient-to-br from-accent-green to-emerald-600
-        `}
-        title="AI 助手"
-      >
-        <Logo size={22} className="text-white" />
-      </button>
     </>
   )
 }

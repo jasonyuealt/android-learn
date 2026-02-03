@@ -49,9 +49,8 @@ yarn build
 | **后端集成** | `supabaseService.ts` / Supabase | **使用 Supabase 云端存储，用户认证、进度同步、测验历史** |
 | 用户认证 | `LoginPage.tsx` / `RegisterPage.tsx` / `authBloc.ts` | 独立登录注册页面，Supabase JWT 认证 |
 | **AI 小测验** | `QuizSection.tsx` / `aiService.ts` | **多题型（单选/多选/判断/填空）、错题重测、云端存储** |
-| **Kotlin 在线测试** | `KotlinPlayground.tsx` / `Navbar.tsx` | **课程页面导航栏"在线测验"按钮，弹窗代码编辑器** |
-| **AI 文本分析** | `AiTextAssistant.tsx` | **选中文本后显示 AI 分析按钮，支持解释代码含义和多轮追问** |
-| **AI 页面助手** | `AiPageAssistant.tsx` | **基于当前页面上下文的智能对话助手** |
+| **AI 内容分析** | `ContentAssistant.tsx` | **流程图/代码块旁的「AI 解析」按钮，深度解析学习内容** |
+| **AI 文本助手** | `AiTextAssistant.tsx` | **选中任意文本自动显示分析按钮，即时解答疑问，支持多轮对话** |
 | 首页 | `HomePage.tsx` | 学习路径总览、当前进度、实战项目推荐 |
 | 学习列表 | `LearnPage.tsx` | 分阶段展示所有课程，显示完成状态 |
 | 课程详情 | `LessonPage.tsx` | 课程内容渲染，支持代码高亮、提示框、表格、AI 测验入口 |
@@ -143,18 +142,23 @@ yarn build
 android-learn/
 ├── src/
 │   ├── components/          # 通用组件
-│   │   ├── AiPageAssistant.tsx       # AI 页面助手
-│   │   ├── AiTextAssistant.tsx       # AI 文本分析（选中触发）
+│   │   ├── AI/                       # AI 功能模块
+│   │   │   ├── shared/              # 共享代码
+│   │   │   │   ├── hooks/           # 共享 Hooks
+│   │   │   │   │   └── useTypingEffect.ts  # 打字机效果
+│   │   │   │   └── utils/           # 共享工具
+│   │   │   │       └── markdown.ts  # Markdown 渲染
+│   │   │   ├── ContentAssistant/    # 内容分析助手（流程图/代码）
+│   │   │   └── TextAssistant/       # 文本分析助手（选中触发）
 │   │   ├── BackgroundDecoration.tsx  # 背景装饰
 │   │   ├── BottomNav.tsx             # 底部导航
 │   │   ├── CodeBlock.tsx             # 代码块显示
 │   │   ├── Icon.tsx                  # Lucide 图标映射组件
-│   │   ├── KotlinPlayground.tsx      # Kotlin 在线测试（导航栏按钮）
 │   │   ├── Logo.tsx                  # Logo 组件
 │   │   ├── Navbar.tsx                # 顶部导航栏
 │   │   ├── PathCard.tsx              # 学习路径卡片
 │   │   ├── ProjectCard.tsx           # 项目卡片
-│   │   ├── QuizSection.tsx           # AI 小测验（云端存储）
+│   │   ├── Quiz.tsx                  # AI 小测验（云端存储）
 │   │   └── ThemeToggle.tsx           # 主题切换按钮
 │   ├── pages/               # 页面组件
 │   │   ├── HomePage.tsx              # 首页
@@ -206,6 +210,29 @@ android-learn/
 ---
 
 ## 📝 更新日志
+
+### v0.9.3 (2026-02-03)
+- ✅ **AI 功能架构优化**
+  - 删除 `AiPageAssistant`（页面助手）- 功能与文本助手重叠
+  - 删除 `KotlinPlayground` 浮动按钮 - 简化界面
+  - 保留两个核心 AI 功能：
+    - `ContentAssistant` - 针对流程图/代码块的深度分析
+    - `AiTextAssistant` - 选中文本即时解答
+  - 共享代码重构到 `AI/shared/` 目录
+  - 功能更清晰，入口更直观，代码更简洁
+
+### v0.9.2 (2026-02-03)
+- ✅ **AI 对话打字机效果优化**
+  - 使用 `requestAnimationFrame` 替代 `setInterval`（性能提升，与浏览器渲染周期同步）
+  - 每次显示 5 个字符，速度：2ms ± 1ms（相当于 0.2-0.6ms/字符）
+  - 1000 字符显示时间：约 0.4-0.6 秒（比原来快 8-12 倍）
+  - 保留打字机视觉效果的同时大幅提升速度
+  - 使用 `useMemo` 缓存 Markdown 渲染，减少不必要的重新渲染
+  - 优化应用到所有 AI 对话组件（流程图分析、代码分析、页面助手）
+- ✅ **自动滚动体验优化**
+  - 新增 PC 端鼠标滚轮监听（之前仅支持移动端触摸）
+  - 修复 PC 用户滚动查看历史消息时被强制拉回底部的问题
+  - 优化应用到所有 AI 对话组件
 
 ### v0.9.1 (2026-01-29)
 - ✅ **移动端适配优化（登录注册页面）**
