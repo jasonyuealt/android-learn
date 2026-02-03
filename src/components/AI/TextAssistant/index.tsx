@@ -8,6 +8,7 @@ import { Sparkles, X, Send, RotateCcw } from 'lucide-react'
 import { useThemeBloc } from '../../../blocs/themeBloc'
 import { useTextSelection } from './hooks/useTextSelection'
 import { useTypingEffect } from '../shared/hooks/useTypingEffect'
+import { useAutoScroll } from '../shared/hooks/useAutoScroll'
 import { renderMarkdown, filterThinkTags } from '../shared/utils/markdown'
 
 // 消息类型
@@ -31,7 +32,6 @@ export function AiTextAssistant() {
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isStreamComplete, setIsStreamComplete] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   
   const theme = useThemeBloc((state) => state.theme)
@@ -39,6 +39,7 @@ export function AiTextAssistant() {
   
   const { selectedText, buttonPosition, showButton, hideButton } = useTextSelection(isOpen)
   const { displayedContent, isTyping, reset: resetTyping, isComplete } = useTypingEffect(targetContent, isStreamComplete)
+  const { scrollContainerRef, messagesEndRef, scrollToBottom, resetAutoScroll } = useAutoScroll()
 
   // 监听打字完成
   useEffect(() => {
@@ -50,15 +51,16 @@ export function AiTextAssistant() {
     }
   }, [isComplete, targetContent, resetTyping])
 
-  // 滚动到最新消息
+  // 自动滚动：每次内容更新都尝试滚动（内部会判断用户是否滚动过）
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, displayedContent])
+    scrollToBottom()
+  }, [messages, displayedContent, scrollToBottom])
 
   // 打开对话面板
   const handleOpenChat = async () => {
     hideButton()
     setIsOpen(true)
+    resetAutoScroll() // 新对话开始，重置自动滚动
     requestAnimationFrame(() => setIsVisible(true))
     
     const firstMessage: Message = {
@@ -231,7 +233,8 @@ export function AiTextAssistant() {
       abortControllerRef.current.abort()
     }
     resetTyping()
-    
+    resetAutoScroll() // 重新开始时，重置自动滚动
+
     // 如果有初始消息，保留它并重新发起分析
     if (initialMessage) {
       setMessages([initialMessage])
@@ -341,7 +344,10 @@ export function AiTextAssistant() {
             </div>
 
             {/* 消息列表 */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4"
+            >
               {messages.map((msg, index) => (
                 <div
                   key={index}

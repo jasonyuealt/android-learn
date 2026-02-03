@@ -7,7 +7,7 @@ import { useEffect, useMemo } from 'react'
 import { Send } from 'lucide-react'
 import { useTypingEffect } from '../../shared/hooks/useTypingEffect'
 import { renderMarkdown } from '../../shared/utils/markdown'
-import { useAutoScroll } from '../hooks/useAutoScroll'
+import { useAutoScroll } from '../../shared/hooks/useAutoScroll'
 import type { Message, UIConfig } from '../types'
 
 interface ChatAreaProps {
