@@ -1,6 +1,6 @@
 /**
  * 第一阶段：基础入门
- * 配置开发环境，掌握 Kotlin 核心语法，理解 Android 架构
+ * Kotlin 核心概念、项目结构、运行调试
  */
 
 import type { Phase } from './types'
@@ -486,10 +486,35 @@ export const phase1: Phase = {
       title: 'Android 架构基础',
       lessons: [
         {
-          id: 'viewmodel-lifecycle',
-          title: 'ViewModel 与生命周期',
-          description: 'ViewModel、lifecycleScope、viewModelScope',
-          duration: 10,
+          id: 'data-class-basics',
+          title: '数据类（Data Class）',
+          description: 'Kotlin 数据类的定义和使用',
+          duration: 5,
+          contents: [
+            {
+              type: 'text',
+              content: '## 什么是数据类？\n\n数据类（Data Class）是 Kotlin 中专门用来存储数据的类，自动提供了常用方法（如 `toString()`、`equals()`、`copy()`）。'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 定义一个数据类\ndata class User(\n    val name: String,\n    val age: Int\n)\n\n// 创建实例\nval user1 = User("张三", 25)\nval user2 = User(name = "李四", age = 30)\n\n// 访问属性\nprintln(user1.name)  // 输出: 张三\nprintln(user1.age)   // 输出: 25\n\n// 自动生成的 toString()\nprintln(user1)       // 输出: User(name=张三, age=25)\n\n// 复制并修改\nval user3 = user1.copy(age = 26)\nprintln(user3)       // 输出: User(name=张三, age=26)'
+            },
+            {
+              type: 'text',
+              content: '## 为什么使用数据类？\n\n在 Android 开发中，数据类非常常见：\n\n- 表示 API 返回的数据（用户信息、商品信息）\n- 表示界面状态（加载中、成功、失败）\n- 在 ViewModel 和 UI 之间传递数据'
+            },
+            {
+              type: 'tip',
+              content: '**记住**：数据类的属性通常用 `val`（不可变），这样更安全。如果需要修改，用 `copy()` 创建新实例。'
+            }
+          ]
+        },
+        {
+          id: 'viewmodel-intro',
+          title: 'ViewModel 简介',
+          description: '什么是 ViewModel，为什么需要它',
+          duration: 5,
           contents: [
             {
               type: 'text',
@@ -507,7 +532,15 @@ export const phase1: Phase = {
             {
               type: 'tip',
               content: '**理解要点**：ViewModel 的生命周期比 Activity 更长，它会在 Activity 销毁后继续存在，直到 Activity 真正结束（不是配置更改）。'
-            },
+            }
+          ]
+        },
+        {
+          id: 'lifecycle-scope',
+          title: '生命周期和作用域',
+          description: 'lifecycleScope 和 viewModelScope',
+          duration: 5,
+          contents: [
             {
               type: 'text',
               content: '## 什么是作用域（Scope）？\n\n在 Android 中，协程需要绑定到一个"作用域"（Scope）上，这样当组件销毁时，协程会自动取消，避免内存泄漏。'
@@ -538,8 +571,8 @@ export const phase1: Phase = {
       ]
     },
     {
-      id: 'async-programming',
-      title: '异步编程',
+      id: 'kotlin-advanced',
+      title: 'Kotlin 进阶',
       lessons: [
         {
           id: 'kotlin-coroutines',
@@ -664,6 +697,98 @@ export const phase1: Phase = {
             {
               type: 'warning',
               content: '**注意**：不要直接在 Composable 函数中修改 StateFlow，应该通过调用 ViewModel 的方法来修改状态。'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'android-env',
+      title: '开发与测试环境',
+      lessons: [
+        {
+          id: 'dev-workflow',
+          title: 'AI 辅助开发流程',
+          description: 'Cursor 写代码 + Android Studio 测试',
+          duration: 10,
+          contents: [
+            {
+              type: 'text',
+              content: '## 现代 Android 开发工作流\n\n在 AI 时代，开发流程发生了变化：\n\n| 工具 | 用途 |\n|-----|------|\n| **Cursor** | 写代码、AI 对话、快速迭代 |\n| **Android Studio** | 运行测试、查看效果、调试问题 |'
+            },
+            {
+              type: 'tip',
+              content: '你不需要精通 Android Studio 的所有功能，只需要会：**运行应用、查看日志、连接设备**。'
+            },
+            {
+              type: 'text',
+              content: '## 基本工作流程\n\n1. 在 Cursor 中描述需求，让 AI 生成代码\n2. 理解 AI 生成的代码，确认逻辑正确\n3. 在 Android Studio 中运行，测试效果\n4. 发现问题后回到 Cursor，描述问题让 AI 修复\n5. 重复直到功能完成'
+            },
+            {
+              type: 'text',
+              content: '## 与 AI 协作的技巧\n\n**描述需求时要具体**：\n- ❌ "写一个登录页面"\n- ✅ "用 Jetpack Compose 写一个登录页面，包含邮箱输入框、密码输入框、登录按钮，使用 MVVM 架构"\n\n**发现问题时提供上下文**：\n- ❌ "代码不工作"\n- ✅ "点击登录按钮后没有反应，Logcat 显示 NetworkOnMainThreadException"'
+            },
+            {
+              type: 'warning',
+              content: '**AI 不是万能的**：它可能生成过时的 API、有安全隐患的代码、或者效率低下的实现。你的代码理解能力决定了最终代码质量。'
+            }
+          ]
+        },
+        {
+          id: 'android-studio-basics',
+          title: 'Android Studio 必备操作',
+          description: '运行应用、Logcat 日志、设备连接',
+          duration: 15,
+          contents: [
+            {
+              type: 'text',
+              content: '## 安装 Android Studio\n\n访问 [developer.android.com/studio](https://developer.android.com/studio) 下载。\n\n**系统要求**：8GB RAM（推荐 16GB），至少 8GB 硬盘空间。\n\n首次运行会下载 SDK，可能需要较长时间。'
+            },
+            {
+              type: 'text',
+              content: '## 必须会的 3 件事\n\n### 1. 运行应用\n点击工具栏的 **▶ 按钮**（或 `Shift + F10`）\n\n### 2. 查看日志（Logcat）\n`View > Tool Windows > Logcat`\n- 筛选你的应用：选择你的包名\n- 搜索关键词：如 "Error"、"Exception"\n\n### 3. 连接设备\n- **模拟器**：`Tools > Device Manager > Create Device`\n- **真机**：开启 USB 调试，连接电脑'
+            },
+            {
+              type: 'tip',
+              content: '**强烈推荐用真机测试**：比模拟器快、更真实。任何 Android 手机都可以，开启开发者选项即可。'
+            },
+            {
+              type: 'text',
+              content: '## 开启真机调试\n\n1. 进入**设置 > 关于手机**\n2. 连续点击**版本号** 7 次，开启开发者模式\n3. 返回设置，进入**开发者选项**\n4. 开启 **USB 调试**\n5. 用 USB 线连接电脑\n6. 手机上点击"允许调试"'
+            },
+            {
+              type: 'text',
+              content: '## 常见问题排查\n\n| 问题 | 解决方案 |\n|-----|----------|\n| 找不到设备 | 检查 USB 线、尝试换接口、重启 adb |\n| 编译失败 | 查看 Build 窗口的错误信息 |\n| 应用闪退 | 查看 Logcat 中的 Exception |'
+            }
+          ]
+        },
+        {
+          id: 'project-structure',
+          title: '项目结构解读',
+          description: '目录结构、Manifest、build.gradle',
+          duration: 12,
+          contents: [
+            {
+              type: 'text',
+              content: '## 为什么要了解项目结构？\n\n当 AI 生成代码时，你需要知道：\n- 这段代码应该放在哪个文件\n- 资源文件（图片、字符串）在哪里\n- 配置文件在哪里'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: 'app/\n├── src/main/\n│   ├── java/                    # Kotlin/Java 代码\n│   │   └── com/example/app/\n│   │       ├── ui/              # 界面相关\n│   │       ├── data/            # 数据层\n│   │       └── MainActivity.kt\n│   ├── res/                     # 资源文件\n│   │   ├── layout/              # XML 布局文件\n│   │   ├── values/              # 字符串、颜色、尺寸\n│   │   ├── drawable/            # 图片、图标\n│   │   └── mipmap/              # 应用图标\n│   └── AndroidManifest.xml      # 应用配置（权限、组件声明）\n├── build.gradle.kts             # 模块构建配置（依赖）\n└── ...'
+            },
+            {
+              type: 'text',
+              content: '## 关键文件说明\n\n| 文件 | 作用 | 你需要了解的 |\n|-----|------|------------|\n| `AndroidManifest.xml` | 应用配置 | 声明权限、Activity、Service |\n| `build.gradle.kts` | 构建配置 | 添加依赖库 |\n| `res/values/strings.xml` | 字符串资源 | 多语言支持 |\n| `res/values/colors.xml` | 颜色定义 | 主题颜色 |'
+            },
+            {
+              type: 'code',
+              language: 'xml',
+              content: '<!-- AndroidManifest.xml 示例 -->\n<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    \n    <!-- 权限声明 -->\n    <uses-permission android:name="android.permission.INTERNET" />\n    \n    <application\n        android:name=".MyApplication"\n        android:label="@string/app_name"\n        android:icon="@mipmap/ic_launcher"\n        android:theme="@style/Theme.MyApp">\n        \n        <!-- Activity 声明 -->\n        <activity android:name=".MainActivity"\n            android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.MAIN" />\n                <category android:name="android.intent.category.LAUNCHER" />\n            </intent-filter>\n        </activity>\n        \n    </application>\n</manifest>'
+            },
+            {
+              type: 'tip',
+              content: '**让 AI 帮你配置**：当需要添加权限、依赖时，直接告诉 AI："我需要使用相机，帮我配置权限"。但你要能看懂它在 Manifest 和 build.gradle 中添加了什么。'
             }
           ]
         }
