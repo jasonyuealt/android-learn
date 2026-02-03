@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useThemeBloc } from './blocs/themeBloc'
 import { useAuthBloc } from './blocs/authBloc'
