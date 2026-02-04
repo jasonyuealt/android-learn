@@ -56,6 +56,18 @@ export function AiTextAssistant() {
     scrollToBottom()
   }, [messages, displayedContent, scrollToBottom])
 
+  // 弹窗打开时禁止背景滚动
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   // 打开对话面板
   const handleOpenChat = async () => {
     hideButton()

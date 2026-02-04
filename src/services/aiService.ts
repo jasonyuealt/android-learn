@@ -337,6 +337,43 @@ scenario 字段应该谨慎使用，仅在以下情况添加：
 ✗ "data class的定义是什么？"（纯记忆）
 ✗ "协程的英文名称是？"（无意义记忆）
 
+【题目表述完整性要求 - 重要】
+1. 代码评估题必须提供足够的上下文信息
+2. 如果代码的行为依赖于某些假设（如函数实现方式），必须在题目或 scenario 中明确说明
+3. 避免因缺少上下文而导致多个答案都"可能正确"的情况
+
+✗ 错误示例（缺少上下文）：
+{
+  "codeSnippet": "viewModelScope.launch { fetchUser() }",
+  "question": "以上代码可能导致什么问题？"
+}
+// ❌ fetchUser() 的实现不明确，无法判断是否有问题
+
+✓ 正确示例（提供完整上下文）：
+{
+  "scenario": "fetchUser() 是一个使用 Retrofit 实现的 suspend 网络请求函数",
+  "codeSnippet": "viewModelScope.launch { fetchUser() }",
+  "question": "在上述条件下，这段代码可能导致什么问题？"
+}
+// ✅ 明确了 fetchUser() 的实现方式，答案明确
+
+4. explanation 必须说明题目的前提假设，帮助学员理解答案的依据
+
+【严格限制课程范围 - 重要】
+1. 题目中出现的所有概念、API、语法必须在当前课程内容中明确讲解过
+2. 如果课程只讲了 viewModelScope，就不能出现 lifecycleScope、GlobalScope 等未讲的内容
+3. 选项中的干扰项也必须是课程中提到过的内容，不能用课程外的知识作为干扰项
+4. 如果课程只讲了基础用法，不能出现高级用法（如课程讲 launch，不能问 async/await）
+
+✗ 错误示例（超出课程范围）：
+课程只讲了 viewModelScope.launch，但题目出现：
+- "应该用 GlobalScope 还是 viewModelScope？" // ❌ GlobalScope 未在课程中讲解
+- "这段代码缺少 withContext(Dispatchers.IO)" // ❌ withContext 未在课程中讲解
+
+✓ 正确做法：
+- 只考察课程明确讲解的知识点
+- 干扰选项使用课程中提到的其他概念
+
 【字段说明】
 - scenario: 场景描述（可选，仅在真正需要额外背景时使用，大部分题目不需要）
 - codeSnippet: 代码片段（可选，用于代码评估题）
