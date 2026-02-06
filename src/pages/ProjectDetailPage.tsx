@@ -175,7 +175,7 @@ export function ProjectDetailPage() {
       <div className="flex justify-center">
         <Link
           to="/learn"
-          className="px-8 py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+          className={`px-8 py-4 rounded-full text-base font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50`}
         >
           先学习基础知识
         </Link>

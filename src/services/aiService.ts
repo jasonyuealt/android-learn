@@ -605,3 +605,217 @@ export function getQuestionTypeName(type: QuestionType): string {
   }
   return names[type] || '选择题'
 }
+
+// 题目验证结果类型
+export interface QuestionValidation {
+  hasIssue: boolean
+  issueType?: 'unclear' | 'wrong_answer' | 'out_of_scope' | 'bad_options'
+  description?: string
+}
+
+/**
+ * AI 验证题目是否有问题
+ */
+export async function aiValidateQuestion(
+  question: QuizQuestion,
+  lessonContent: string
+): Promise<QuestionValidation> {
+  const prompt = `你是一位严格的 Android 开发教学题目审核专家。请检查以下测验题目是否存在问题。
+
+【课程内容】
+${lessonContent}
+
+【待检查的题目】
+题型：${getQuestionTypeName(question.type)}
+题目：${question.question}
+${question.scenario ? `场景：${question.scenario}` : ''}
+${question.codeSnippet ? `代码：${question.codeSnippet}` : ''}
+选项：${question.options.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`).join('\n')}
+标注的正确答案：${question.type === 'fill_blank' ? question.correctAnswer : (
+    Array.isArray(question.correctIndex)
+      ? question.correctIndex.map(i => question.options[i]).join(', ')
+      : question.options[question.correctIndex as number]
+  )}
+答案解析：${question.explanation}
+
+【检查维度】
+1. 表述清晰度：题目是否表述清晰完整？是否缺少必要的上下文信息？是否存在歧义？
+2. 答案正确性：标注的正确答案是否确实正确？是否存在多个答案都可能正确的情况？
+3. 课程范围：题目涉及的概念、API、语法是否都在课程内容中讲解过？
+4. 选项设计：干扰项是否合理？选项之间是否有重复或包含关系？
+
+【输出格式】
+请严格按照以下 JSON 格式返回（不要添加任何其他文字）：
+{
+  "hasIssue": true/false,
+  "issueType": "unclear" | "wrong_answer" | "out_of_scope" | "bad_options" | null,
+  "description": "问题描述（如果有问题的话）"
+}
+
+- unclear：表述不清晰、缺少上下文、有歧义
+- wrong_answer：答案错误或多个答案都正确
+- out_of_scope：超出课程范围
+- bad_options：选项设计不合理
+
+如果题目没有问题，返回 {"hasIssue": false}`
+
+  try {
+    let response: Response
+
+    if (isDev) {
+      response = await fetch(`${DEV_API_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEV_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: DEV_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 500,
+          temperature: 0.3
+        })
+      })
+    } else {
+      response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          maxTokens: 500,
+          temperature: 0.3
+        })
+      })
+    }
+
+    if (!response.ok) {
+      throw new Error('AI 请求失败')
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content || ''
+
+    // 解析 JSON
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0])
+      return {
+        hasIssue: result.hasIssue === true,
+        issueType: result.issueType || undefined,
+        description: result.description || undefined
+      }
+    }
+
+    return { hasIssue: false }
+  } catch (error) {
+    console.error('验证题目失败:', error)
+    throw new Error('验证题目失败，请稍后重试')
+  }
+}
+
+/**
+ * 重新生成单道题目
+ */
+export async function regenerateSingleQuestion(
+  originalQuestion: QuizQuestion,
+  lessonTitle: string,
+  lessonContent: string,
+  issueDescription: string
+): Promise<QuizQuestion> {
+  const prompt = `你是一位 Android 开发教学专家。原题目存在问题，请重新生成一道题目。
+
+【原题目的问题】
+${issueDescription}
+
+【原题目】
+题型：${getQuestionTypeName(originalQuestion.type)}
+题目：${originalQuestion.question}
+
+【课程信息】
+课程标题：${lessonTitle}
+课程内容：${lessonContent}
+
+【要求】
+1. 保持相同的题型（${getQuestionTypeName(originalQuestion.type)}）
+2. 考察相同或相近的知识点
+3. 修复原题目的问题
+4. 确保题目表述清晰、答案正确、在课程范围内
+
+【输出格式】
+请严格按照以下 JSON 格式返回（不要添加任何其他文字）：
+{
+  "id": "${originalQuestion.id}_regen",
+  "type": "${originalQuestion.type}",
+  "question": "新题目内容",
+  "options": ["选项A", "选项B", "选项C", "选项D"],
+  "correctIndex": 0,
+  "explanation": "答案解析",
+  "scenario": "场景描述（可选）",
+  "codeSnippet": "代码片段（可选）"
+}
+
+注意：
+- single_choice/true_false: correctIndex 是数字
+- multiple_choice: correctIndex 是数组，如 [0, 2]
+- fill_blank: correctIndex 为 -1，添加 "correctAnswer": "答案"
+- true_false: options 固定为 ["正确", "错误"]`
+
+  try {
+    let response: Response
+
+    if (isDev) {
+      response = await fetch(`${DEV_API_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEV_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: DEV_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      })
+    } else {
+      response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          maxTokens: 1000,
+          temperature: 0.7
+        })
+      })
+    }
+
+    if (!response.ok) {
+      throw new Error('AI 请求失败')
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content || ''
+
+    // 解析 JSON
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const q = JSON.parse(jsonMatch[0])
+      return new QuizQuestion(
+        q.id || `${originalQuestion.id}_regen`,
+        q.type,
+        q.question,
+        q.options || [],
+        q.correctIndex,
+        q.correctAnswer,
+        q.explanation || '',
+        q.codeSnippet,
+        q.scenario
+      )
+    }
+
+    throw new Error('无法解析生成的题目')
+  } catch (error) {
+    console.error('重新生成题目失败:', error)
+    throw new Error('重新生成题目失败，请稍后重试')
+  }
+}

@@ -8,7 +8,7 @@ import { checkAnswer, type QuizQuestion } from '../../services/aiService'
 import { SingleChoiceOptions } from './QuestionOptions/SingleChoiceOptions'
 import { MultipleChoiceOptions } from './QuestionOptions/MultipleChoiceOptions'
 import { FillBlankInput } from './QuestionOptions/FillBlankInput'
-import { ReportButton } from './ReportButton'
+import { ValidateButton } from './ValidateButton'
 
 interface QuizQuestionProps {
   question: QuizQuestion
@@ -18,11 +18,14 @@ interface QuizQuestionProps {
   showExplanation: boolean
   userAnswer: number | number[] | string | undefined
   isDark: boolean
+  lessonTitle: string
+  lessonContent: string
   onSelectSingle: (index: number) => void
   onSelectMultiple: (index: number) => void
   onInputAnswer: (value: string) => void
   onConfirm: () => void
   onNext: () => void
+  onRegenerate: (newQuestion: QuizQuestion) => void
   canSubmit: boolean
 }
 
@@ -34,11 +37,14 @@ export function QuizQuestionComponent({
   showExplanation,
   userAnswer,
   isDark,
+  lessonTitle,
+  lessonContent,
   onSelectSingle,
   onSelectMultiple,
   onInputAnswer,
   onConfirm,
   onNext,
+  onRegenerate,
   canSubmit
 }: QuizQuestionProps) {
   // 检查当前答案是否正确
@@ -160,12 +166,13 @@ export function QuizQuestionComponent({
               <p className={`text-sm mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
                 {question.explanation}
               </p>
-              {/* 报告错题按钮 */}
-              <ReportButton
-                questionId={question.id}
-                questionText={question.question}
+              {/* AI 验证题目按钮 */}
+              <ValidateButton
+                question={question}
+                lessonTitle={lessonTitle}
+                lessonContent={lessonContent}
                 isDark={isDark}
-                onReport={() => console.log('已报告题目:', question.id)}
+                onRegenerate={onRegenerate}
               />
             </div>
           </div>

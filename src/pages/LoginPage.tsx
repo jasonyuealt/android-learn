@@ -106,7 +106,7 @@ export function LoginPage() {
                 ? 'bg-accent-green/50 cursor-not-allowed' 
                 : 'bg-accent-green hover:shadow-lg hover:shadow-accent-green/25 hover:-translate-y-0.5'
               }
-              text-dark-bg-primary
+              ${isDark ? 'text-dark-bg-primary' : 'text-white'}
             `}
           >
             {isLoading ? (

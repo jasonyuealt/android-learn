@@ -26,7 +26,7 @@ export function LogoWithBackground({
       className={`flex items-center justify-center rounded-2xl bg-gradient-to-br from-accent-green to-emerald-600 ${className}`}
       style={{ width: size, height: size }}
     >
-      <Logo size={iconSize} className="text-dark-bg-primary" />
+      <Logo size={iconSize} className="text-white" />
     </div>
   )
 }

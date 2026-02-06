@@ -47,3 +47,13 @@ Thumbs.db
 .claude/
 AGENTS.md
 .vercel
+
+# Cursor editor
+.cursor/
+
+# Shared design configs
+.shared/
+
+# Python cache
+__pycache__/
+*.pyc

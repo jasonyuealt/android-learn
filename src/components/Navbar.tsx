@@ -215,7 +215,7 @@ export function Navbar() {
           // 课程详情页：显示"在线测验"按钮
           <button
             onClick={() => setIsEditorOpen(true)}
-            className="hidden sm:block px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+            className={`hidden sm:block px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50`}
           >
             在线测验
           </button>
@@ -223,7 +223,7 @@ export function Navbar() {
           // 其他页面：显示"开始学习"按钮
           <Link
             to="/learn"
-            className="hidden sm:block px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+            className={`hidden sm:block px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50`}
           >
             开始学习
           </Link>

@@ -165,6 +165,24 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
     }
   }
 
+  // 重新生成当前题目（替换有问题的题目）
+  const handleRegenerateQuestion = (newQuestion: QuizQuestion) => {
+    setQuestions(prev => {
+      const updated = [...prev]
+      updated[currentIndex] = newQuestion
+      return updated
+    })
+    // 重置当前题目状态
+    setShowExplanation(false)
+    if (newQuestion.type === 'multiple_choice') {
+      setSelectedAnswer([])
+    } else if (newQuestion.type === 'fill_blank') {
+      setSelectedAnswer('')
+    } else {
+      setSelectedAnswer(null)
+    }
+  }
+
   // 重置测验
   const resetQuiz = () => {
     setStatus('idle')
@@ -295,11 +313,14 @@ export function QuizSection({ lessonId, lessonTitle, lessonContent, onComplete }
             showExplanation={showExplanation}
             userAnswer={userAnswers[currentIndex]}
             isDark={isDark}
+            lessonTitle={lessonTitle}
+            lessonContent={lessonContent}
             onSelectSingle={handleSelectSingle}
             onSelectMultiple={handleSelectMultiple}
             onInputAnswer={handleInputAnswer}
             onConfirm={handleConfirmAnswer}
             onNext={handleNextQuestion}
+            onRegenerate={handleRegenerateQuestion}
             canSubmit={canSubmitAnswer()}
           />
         )}

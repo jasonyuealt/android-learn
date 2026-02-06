@@ -44,7 +44,7 @@ export function BottomNav() {
             px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer
             focus:outline-none focus:ring-2 focus:ring-accent-green/50
             ${isActive(tab.path)
-              ? 'bg-accent-green text-dark-bg-primary'
+              ? `bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'}`
               : isDark
                 ? 'text-dark-text-secondary hover:text-dark-text-primary'
                 : 'text-light-text-secondary hover:text-light-text-primary'

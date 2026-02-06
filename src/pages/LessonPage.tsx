@@ -565,7 +565,7 @@ export function LessonPage() {
           <div className="mb-8">
             <button
               onClick={handleComplete}
-              className="w-full py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50 flex items-center justify-center gap-2"
+              className={`w-full py-4 rounded-full text-base font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50 flex items-center justify-center gap-2`}
             >
               <Check size={20} />
               完成学习，继续下一课

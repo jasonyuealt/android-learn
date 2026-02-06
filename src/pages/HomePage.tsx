@@ -65,7 +65,7 @@ export function HomePage() {
         <div className="flex flex-wrap gap-4">
           <Link
             to="/learn"
-            className="px-8 py-4 rounded-full text-base font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+            className={`px-8 py-4 rounded-full text-base font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50`}
           >
             开始学习之旅
           </Link>
@@ -225,7 +225,7 @@ export function HomePage() {
               </div>
               <button
                 onClick={() => navigate(`/learn/${recommendedPhaseId}/${recommendedLesson.id}`)}
-                className="px-6 py-3 rounded-full text-sm font-semibold bg-accent-green text-dark-bg-primary cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50"
+                className={`px-6 py-3 rounded-full text-sm font-semibold bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} cursor-pointer hover:shadow-lg hover:shadow-accent-green/20 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-green/50`}
               >
                 {currentLessonData ? '继续学习' : '开始学习'}
               </button>

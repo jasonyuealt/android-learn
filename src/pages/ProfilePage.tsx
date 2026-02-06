@@ -214,7 +214,7 @@ export function ProfilePage() {
           <div className="flex gap-3">
             <Link
               to="/login"
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-accent-green text-dark-bg-primary hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200"
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-accent-green ${isDark ? 'text-dark-bg-primary' : 'text-white'} hover:shadow-lg hover:shadow-accent-green/20 transition-all duration-200`}
             >
               <LogIn size={16} />
               登录
