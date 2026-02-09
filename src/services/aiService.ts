@@ -470,16 +470,17 @@ scenario 字段应该谨慎使用，仅在以下情况添加：
     }
 
     const data = await response.json()
-    const content = data.choices?.[0]?.message?.content || ''
-    
-    // 解析 JSON 响应
+    const rawContent = data.choices?.[0]?.message?.content || ''
+
+    // 去掉 <think>...</think> 思考标签后再解析 JSON
+    const content = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       throw new Error('无法解析 AI 响应')
     }
 
     const parsed = JSON.parse(jsonMatch[0])
-    
+
     // 转换为 QuizQuestion 对象数组并验证
     const questions = parsed.questions.map((q: {
       id: string
@@ -693,9 +694,10 @@ ${question.codeSnippet ? `代码：${question.codeSnippet}` : ''}
     }
 
     const data = await response.json()
-    const content = data.choices?.[0]?.message?.content || ''
+    const rawContent = data.choices?.[0]?.message?.content || ''
 
-    // 解析 JSON
+    // 去掉 <think>...</think> 思考标签后再解析 JSON
+    const content = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const result = JSON.parse(jsonMatch[0])
@@ -794,9 +796,10 @@ ${issueDescription}
     }
 
     const data = await response.json()
-    const content = data.choices?.[0]?.message?.content || ''
+    const rawContent = data.choices?.[0]?.message?.content || ''
 
-    // 解析 JSON
+    // 去掉 <think>...</think> 思考标签后再解析 JSON
+    const content = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const q = JSON.parse(jsonMatch[0])

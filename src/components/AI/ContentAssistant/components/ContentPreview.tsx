@@ -204,7 +204,7 @@ export function ContentPreview({
                   {language}
                 </span>
               </div>
-              <pre className="p-4 overflow-x-auto text-xs leading-relaxed">
+              <pre className="p-4 text-xs leading-relaxed whitespace-pre-wrap break-words">
                 <code className={`font-mono ${isDark ? 'text-dark-text-secondary' : 'text-light-text-secondary'}`}>
                   {content}
                 </code>

@@ -489,49 +489,54 @@ export const phase1: Phase = {
           id: 'viewmodel-lifecycle',
           title: 'ViewModel 与生命周期',
           description: 'ViewModel、lifecycleScope、viewModelScope',
-          duration: 10,
+          duration: 15,
           contents: [
             {
               type: 'text',
-              content: '## 什么是 ViewModel？\n\nViewModel 是 Android 架构组件之一，用于管理界面相关的数据。它的特点是：\n\n1. **生命周期感知**：在配置更改（如屏幕旋转）时保持数据\n2. **数据分离**：将数据逻辑从 UI 代码中分离出来\n3. **易于测试**：可以独立测试业务逻辑'
-            },
-            {
-              type: 'text',
-              content: '## 为什么需要 ViewModel？\n\n**问题**：如果把数据直接放在 Activity/Fragment 中，屏幕旋转时数据会丢失。\n\n**解决方案**：ViewModel 在配置更改时会保留数据。\n\n```mermaid\ngraph LR\n    A[用户操作] --> B[Activity/Fragment]\n    B --> C[ViewModel]\n    C --> D[数据/业务逻辑]\n    D --> C\n    C --> B\n    B --> E[UI显示]\n    \n    F[屏幕旋转] -.不会丢失.-> C\n```'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 简单的 ViewModel 示例\nclass CounterViewModel : ViewModel() {\n    // 存储计数器的值\n    private var count = 0\n    \n    // 获取当前值\n    fun getCount(): Int = count\n    \n    // 增加计数\n    fun increment() {\n        count++\n    }\n}\n\n// 在 Activity 中使用\nclass MainActivity : AppCompatActivity() {\n    private val viewModel: CounterViewModel by viewModels()\n    \n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        \n        // 即使屏幕旋转，count 的值也会保留\n        println("当前计数: ${viewModel.getCount()}")\n    }\n}'
+              content: '## 你遇到过这个问题吗？\n\n你做了一个计数器 App，用户点了 100 次按钮，然后把手机横过来...\n\n数据没了。计数器回到 0。\n\n这是因为屏幕旋转时，Android 会销毁并重建 Activity，Activity 中的变量全部清空。ViewModel 就是为了解决这个问题。'
             },
             {
               type: 'tip',
-              content: '**理解要点**：ViewModel 的生命周期比 Activity 更长，它会在 Activity 销毁后继续存在，直到 Activity 真正结束（不是配置更改）。'
-            },
-            {
-              type: 'text',
-              content: '## 什么是作用域（Scope）？\n\n在 Android 中，协程需要绑定到一个"作用域"（Scope）上，这样当组件销毁时，协程会自动取消，避免内存泄漏。'
-            },
-            {
-              type: 'text',
-              content: '## 常用的两种作用域\n\n| 作用域 | 绑定到 | 使用场景 |\n|--------|--------|----------|\n| `lifecycleScope` | Activity/Fragment | UI 相关的短期任务 |\n| `viewModelScope` | ViewModel | 数据加载、业务逻辑 |'
-            },
-            {
-              type: 'text',
-              content: '## 生命周期示意\n\n```mermaid\nsequenceDiagram\n    participant Activity\n    participant ViewModel\n    participant Coroutine as 协程\n    \n    Activity->>ViewModel: 创建\n    ViewModel->>Coroutine: viewModelScope.launch\n    Note over Coroutine: 执行耗时任务\n    \n    Activity->>Activity: 屏幕旋转\n    Note over Activity: Activity 销毁并重建\n    Note over ViewModel: ViewModel 保持存在\n    Note over Coroutine: 协程继续运行\n    \n    Activity->>Activity: 用户退出\n    Activity->>ViewModel: 销毁\n    ViewModel->>Coroutine: 自动取消\n    Note over Coroutine: 协程停止\n```'
+              content: '**JS 开发者注意**：这就像 React 组件卸载再重新挂载，`useState` 的值全丢了。ViewModel 类似把状态放在组件外部（如 Redux Store），不受组件重建影响。'
             },
             {
               type: 'code',
               language: 'kotlin',
-              content: '// 在 ViewModel 中使用 viewModelScope\nclass UserViewModel : ViewModel() {\n    fun loadUser() {\n        viewModelScope.launch {\n            // 这个协程会在 ViewModel 销毁时自动取消\n            // 不需要手动管理生命周期\n            val user = fetchUserFromServer()\n            println("用户加载完成: $user")\n        }\n    }\n}\n\n// 在 Activity 中使用 lifecycleScope\nclass MainActivity : AppCompatActivity() {\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        \n        lifecycleScope.launch {\n            // 这个协程会在 Activity 销毁时自动取消\n            val data = loadData()\n            updateUI(data)\n        }\n    }\n}'
+              content: '// ❌ 数据放在 Activity 中：屏幕旋转后 count 变成 0\nclass MainActivity : AppCompatActivity() {\n    private var count = 0  // 旋转后丢失！\n    \n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        println("当前计数: $count")  // 每次旋转都输出: 0\n    }\n}\n\n// ✅ 数据放在 ViewModel 中：屏幕旋转后 count 保留\nclass CounterViewModel : ViewModel() {\n    private var count = 0  // ViewModel 不会被销毁\n    \n    fun getCount() = count\n    fun increment() { count++ }\n}\n\nclass MainActivity : AppCompatActivity() {\n    private val viewModel: CounterViewModel by viewModels()\n    \n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        // 即使屏幕旋转，count 的值也会保留\n        println("当前计数: ${viewModel.getCount()}")  // 输出: 100\n    }\n}'
+            },
+            {
+              type: 'text',
+              content: '## ViewModel 的核心职责\n\n| 职责 | 说明 |\n|------|------|\n| 保存 UI 数据 | 屏幕旋转、配置更改时数据不丢失 |\n| 分离业务逻辑 | Activity 只负责显示，ViewModel 处理数据 |\n| 管理协程 | 提供 `viewModelScope`，自动取消 |'
+            },
+            {
+              type: 'text',
+              content: '## 生命周期对比\n\n```mermaid\nsequenceDiagram\n    participant Activity\n    participant ViewModel\n    \n    Activity->>ViewModel: 创建\n    Note over Activity: 用户使用中...\n    Activity->>Activity: 屏幕旋转（销毁重建）\n    Note over ViewModel: 继续存在，数据保留\n    Activity->>ViewModel: 重新连接\n    Note over Activity: 用户退出\n    Activity->>ViewModel: 真正销毁\n```\n\nViewModel 的生命周期比 Activity 更长——它在 Activity 因配置更改销毁重建时继续存在，直到 Activity **真正结束**才销毁。'
+            },
+            {
+              type: 'text',
+              content: '## 协程作用域：viewModelScope vs lifecycleScope\n\n协程需要绑定到"作用域"，组件销毁时协程会自动取消，避免内存泄漏。\n\n| 作用域 | 绑定到 | 使用场景 |\n|--------|--------|----------|\n| `viewModelScope` | ViewModel | 数据加载、网络请求（推荐） |\n| `lifecycleScope` | Activity/Fragment | 纯 UI 动画等短期任务 |'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// ✅ 在 ViewModel 中用 viewModelScope（推荐）\nclass UserViewModel : ViewModel() {\n    fun loadUser() {\n        viewModelScope.launch {\n            // ViewModel 销毁时自动取消\n            val user = fetchUserFromServer()\n            println("用户: ${user.name}")\n        }\n    }\n}\n\n// ✅ 在 Activity 中用 lifecycleScope（短期 UI 操作）\nclass MainActivity : AppCompatActivity() {\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        lifecycleScope.launch {\n            // Activity 销毁时自动取消\n            val data = loadData()\n            updateUI(data)\n        }\n    }\n}\n\n// ❌ 永远不要用 GlobalScope\nGlobalScope.launch {\n    // 不会自动取消！Activity 销毁后仍在运行 → 内存泄漏\n    val data = fetchData()\n}'
             },
             {
               type: 'warning',
-              content: '**重要**：永远不要使用 `GlobalScope.launch`，它不会自动取消，容易导致内存泄漏！'
+              content: '**永远不要用 `GlobalScope.launch`！** 它不会自动取消，容易导致内存泄漏。看到 `GlobalScope` 就改成 `viewModelScope` 或 `lifecycleScope`。'
             },
             {
               type: 'tip',
-              content: '**经验法则**：数据加载、网络请求等业务逻辑放在 ViewModel 中，用 `viewModelScope`；纯 UI 操作放在 Activity/Fragment 中，用 `lifecycleScope`。'
+              content: '**经验法则**：网络请求、数据库操作 → `viewModelScope`（在 ViewModel 中）；纯 UI 动画、短期显示 → `lifecycleScope`（在 Activity/Fragment 中）。'
+            },
+            {
+              type: 'text',
+              content: '## 速查表\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: 'ViewModel          → 存放 UI 数据和业务逻辑，屏幕旋转不丢失\nby viewModels()    → 在 Activity 中获取 ViewModel 实例\nviewModelScope     → ViewModel 的协程作用域，自动取消\nlifecycleScope     → Activity/Fragment 的协程作用域，自动取消\nGlobalScope        → ❌ 禁止使用，不会自动取消'
             }
           ]
         }
@@ -549,64 +554,86 @@ export const phase1: Phase = {
           contents: [
             {
               type: 'text',
-              content: '## 为什么需要协程？\n\n网络请求、数据库读写都是"耗时操作"。如果在主线程执行，应用会卡住甚至崩溃。协程让你能优雅地处理这些操作。'
+              content: '## 你的 App 为什么卡住了？\n\n想象你做了一个天气 App，点击"刷新"按钮后，整个页面冻住了——不能滑动、不能点击，过了几秒才恢复。\n\n原因：网络请求在主线程执行，阻塞了 UI 渲染。协程就是解决这个问题的工具。'
             },
             {
               type: 'warning',
-              content: 'Android 铁律：不能在主线程（UI 线程）执行耗时操作！否则应用会 ANR（无响应）。'
-            },
-            {
-              type: 'text',
-              content: '## 传统回调 vs 协程\n\n传统方式容易形成"回调地狱"，协程让异步代码像同步代码一样清晰：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 传统方式：回调嵌套，越来越深\ngetUser { user ->\n    getOrders(user.id) { orders ->\n        getOrderDetails(orders[0].id) { details ->\n            // 嵌套地狱...\n        }\n    }\n}\n\n// 协程方式：像写同步代码一样清晰\nsuspend fun loadData() {\n    val user = getUser()                    // 等待\n    val orders = getOrders(user.id)         // 等待\n    val details = getOrderDetails(orders[0].id)\n    // 顺序执行，代码清晰\n}'
-            },
-            {
-              type: 'text',
-              content: '## 核心概念\n\n协程的执行流程：\n\n```mermaid\ngraph LR\n    A[主线程] --> B[启动协程]\n    B --> C{协程类型}\n    C -->|launch| D[执行任务]\n    C -->|async| E[执行任务并返回结果]\n    D --> F[完成]\n    E --> G[await获取结果]\n    G --> F\n```\n\n核心关键字说明：\n\n| 关键字 | 作用 |\n|-------|------|\n| `suspend` | 标记可挂起的函数，只能在协程中调用 |\n| `launch` | 启动协程，不返回结果 |\n| `async` | 启动协程，返回 Deferred（可获取结果） |\n| `await` | 等待 async 的结果 |\n| `viewModelScope` | ViewModel 的协程作用域，自动管理生命周期 |'
-            },
-            {
-              type: 'text',
-              content: '## suspend 函数\n\nsuspend 标记的函数可以"暂停"执行，等待耗时操作完成后继续：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 定义 suspend 函数\nsuspend fun fetchUser(): User {\n    delay(1000)  // 模拟网络延迟 1 秒，不会阻塞线程\n    return User("张三", 25)\n}\n\n// 调用示例\nviewModelScope.launch {\n    val user = fetchUser()  // 等待 1 秒后返回结果\n    println(user.name)  // 输出: 张三\n}\n\n// suspend 函数只能在协程中调用\n// fetchUser()  // 编译错误！不能在普通函数中调用'
-            },
-            {
-              type: 'text',
-              content: '## 启动协程：launch\n\nlaunch 用于启动一个不需要返回值的协程：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 示例：加载用户数据\nviewModelScope.launch {\n    try {\n        // fetchUser 是一个 suspend 函数，会等待网络请求完成\n        val user = fetchUser()\n        println("用户加载成功: ${user.name}")\n    } catch (e: Exception) {\n        // 处理错误（如网络异常）\n        println("加载失败: ${e.message}")\n    }\n}\n\n// fetchUser 函数的定义（在实际项目中通常在 Repository 层）\nsuspend fun fetchUser(): User {\n    delay(1000)  // 模拟网络延迟 1 秒\n    return User("张三", 25)\n}'
-            },
-            {
-              type: 'text',
-              content: '## 并发请求：async/await\n\n需要同时发起多个请求并等待全部完成时使用。\n\n**并发执行流程**：\n\n```mermaid\nsequenceDiagram\n    participant Main as 主线程\n    participant C as 协程\n    participant A1 as async任务1\n    participant A2 as async任务2\n    \n    Main->>C: viewModelScope.launch\n    C->>A1: async { fetchUser() }\n    C->>A2: async { fetchOrders() }\n    Note over A1,A2: 并行执行\n    A1-->>C: 返回 Deferred\n    A2-->>C: 返回 Deferred\n    C->>A1: await()\n    A1-->>C: User数据\n    C->>A2: await()\n    A2-->>C: Orders数据\n    C->>Main: updateUI(user, orders)\n```\n\n**步骤详解**：\n\n① **主线程启动协程**：`Main` 通过 `viewModelScope.launch` 创建一个**协程**，这是 Android ViewModel 生命周期内安全管理协程的方式。\n\n为什么？保证协程在 ViewModel 销毁时自动取消，避免内存泄漏。\n\n② **协程分发两个异步任务**：**协程** 通过 `async { fetchUser() }` 和 `async { fetchOrders() }` 启动两个独立的异步任务（**async任务1** 和 **async任务2**）。\n\n为什么？`async` 会返回 `Deferred` 对象，允许任务并行执行且不阻塞主线程。\n\n③ **并行执行异步任务**：**async任务1** 和 **async任务2** 同时运行（例如同时下载用户信息和订单信息），互不等待。\n\n关键点：并行执行能显著减少总耗时（例如两个 1 秒的请求，总耗时仅为 1 秒）。\n\n④ **协程等待结果**：**协程** 通过 `await()` 从 `Deferred` 中获取任务结果：\n\n- **协程→async任务1**: `await()` 等待 **async任务1** 返回 `User` 数据\n- **协程→async任务2**: `await()` 等待 **async任务2** 返回 `Orders` 数据\n\n**代码示例**：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 示例：并发请求用户和订单数据\nviewModelScope.launch {\n    // 同时启动两个异步任务\n    val userTask = async { \n        delay(1000)  // 模拟请求用户数据\n        User("张三", 25) \n    }\n    val ordersTask = async { \n        delay(1000)  // 模拟请求订单数据\n        listOf("订单1", "订单2") \n    }\n    \n    // 等待两个任务完成（并行执行，总耗时约 1 秒）\n    val user = userTask.await()\n    val orders = ordersTask.await()\n    \n    // 使用结果\n    println("用户: ${user.name}, 订单数量: ${orders.size}")\n}'
-            },
-            {
-              type: 'text',
-              content: '## Flow：数据流\n\nFlow 用于持续观察数据变化（如实时消息、股票价格）：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 创建一个 Flow，每秒发送一个数字\nfun countFlow(): Flow<Int> = flow {\n    var count = 0\n    while (count < 5) {\n        delay(1000)  // 每秒发送一次\n        emit(count)  // 发送数据\n        count++\n    }\n}\n\n// 收集 Flow 数据\nviewModelScope.launch {\n    countFlow().collect { number ->\n        // 每次收到新数据时执行\n        println("收到数字: $number")\n    }\n}\n\n// 输出：\n// 收到数字: 0\n// 收到数字: 1\n// 收到数字: 2\n// ...'
+              content: '**Android 铁律**：不能在主线程执行耗时操作（网络请求、数据库读写、文件操作）！否则应用会 ANR（Application Not Responding）。'
             },
             {
               type: 'tip',
-              content: '**重点关注**：1. 网络/数据库操作必须在协程中 2. 是否正确处理异常 3. 是否使用正确的 scope（如 viewModelScope）'
+              content: '**JS 开发者注意**：Kotlin 协程 ≈ JS 的 async/await。`suspend` 就像 `async function`，`launch` 就像调用异步函数。但 Kotlin 协程更强大，内置了取消和作用域管理。'
+            },
+            {
+              type: 'text',
+              content: '## 回调地狱 vs 协程'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// ❌ 传统回调：嵌套越来越深（回调地狱）\ngetUser { user ->\n    getOrders(user.id) { orders ->\n        getOrderDetails(orders[0].id) { details ->\n            // 继续嵌套...\n        }\n    }\n}\n\n// ✅ 协程：像同步代码一样清晰\nsuspend fun loadData() {\n    val user = getUser()                        // 等待完成\n    val orders = getOrders(user.id)             // 等待完成\n    val details = getOrderDetails(orders[0].id) // 等待完成\n    // 顺序执行，没有嵌套\n}'
+            },
+            {
+              type: 'text',
+              content: '## 核心概念一览\n\n| 关键字 | 作用 | JS 类比 |\n|-------|------|--------|\n| `suspend` | 标记可暂停的函数 | `async function` |\n| `launch` | 启动协程，不返回结果 | 调用 async 函数不 await |\n| `async` | 启动协程，返回结果 | `Promise` |\n| `await()` | 等待 async 的结果 | `await` |\n| `Flow` | 持续数据流 | `Observable` / `AsyncIterable` |'
+            },
+            {
+              type: 'text',
+              content: '## suspend 函数\n\n`suspend` 标记的函数可以"暂停"执行，等待耗时操作完成后继续，不会阻塞线程：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 定义 suspend 函数\nsuspend fun fetchUser(): User {\n    delay(1000)  // 模拟网络延迟 1 秒（不阻塞线程）\n    return User("张三", 25)\n}\n\n// 在协程中调用\nviewModelScope.launch {\n    val user = fetchUser()  // 暂停 1 秒，然后继续\n    println(user.name)      // 输出: 张三\n}\n\n// ❌ 不能在普通函数中直接调用 suspend 函数\n// fetchUser()  // 编译错误！必须在协程中调用'
+            },
+            {
+              type: 'text',
+              content: '## launch：启动协程\n\n`launch` 启动一个不需要返回值的协程，最常用：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 典型用法：在 ViewModel 中加载数据\nclass UserViewModel : ViewModel() {\n    fun loadUser() {\n        viewModelScope.launch {\n            try {\n                val user = fetchUser()  // suspend 函数\n                println("加载成功: ${user.name}")\n            } catch (e: Exception) {\n                println("加载失败: ${e.message}")\n            }\n        }\n    }\n}'
+            },
+            {
+              type: 'text',
+              content: '## async/await：并发请求\n\n需要同时发起多个请求时，用 `async` 并行执行：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 场景：同时加载用户信息和订单列表\nviewModelScope.launch {\n    // async 启动并行任务\n    val userTask = async { fetchUser() }       // 请求1：耗时 1 秒\n    val ordersTask = async { fetchOrders() }   // 请求2：耗时 1 秒\n    \n    // await 等待结果（并行执行，总耗时约 1 秒而非 2 秒）\n    val user = userTask.await()\n    val orders = ordersTask.await()\n    \n    println("${user.name} 有 ${orders.size} 个订单")\n}\n\n// 对比：顺序执行需要 2 秒\nviewModelScope.launch {\n    val user = fetchUser()       // 等 1 秒\n    val orders = fetchOrders()   // 再等 1 秒\n    // 总共 2 秒\n}'
+            },
+            {
+              type: 'tip',
+              content: '**何时用 async？** 多个请求互不依赖时，用 async 并行可以节省时间。如果后一个请求依赖前一个的结果，就用普通顺序调用。'
+            },
+            {
+              type: 'text',
+              content: '## Flow：持续数据流\n\nFlow 用于持续观察数据变化，适合倒计时、实时消息等场景：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 创建 Flow：倒计时\nfun countDown(): Flow<Int> = flow {\n    for (i in 5 downTo 0) {\n        emit(i)       // 发送数据\n        delay(1000)   // 等待 1 秒\n    }\n}\n\n// 收集 Flow 数据\nviewModelScope.launch {\n    countDown().collect { number ->\n        println("倒计时: $number")  // 每秒输出一次\n    }\n}\n// 输出: 倒计时: 5 → 4 → 3 → 2 → 1 → 0'
+            },
+            {
+              type: 'text',
+              content: '## 常见错误对比'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// ❌ 错误1：在主线程做网络请求\nfun loadUser() {\n    val user = api.getUser()  // 崩溃！NetworkOnMainThreadException\n}\n// ✅ 正确：用协程\nfun loadUser() {\n    viewModelScope.launch {\n        val user = api.getUser()  // 在协程中调用 suspend 函数\n    }\n}\n\n// ❌ 错误2：用 GlobalScope（不会自动取消）\nGlobalScope.launch { fetchData() }\n// ✅ 正确：用 viewModelScope\nviewModelScope.launch { fetchData() }\n\n// ❌ 错误3：忘记处理异常\nviewModelScope.launch {\n    val user = fetchUser()  // 网络出错直接崩溃\n}\n// ✅ 正确：try-catch\nviewModelScope.launch {\n    try {\n        val user = fetchUser()\n    } catch (e: Exception) {\n        showError(e.message ?: "请求失败")\n    }\n}'
+            },
+            {
+              type: 'text',
+              content: '## 速查表\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: 'suspend fun        → 可暂停函数，只能在协程中调用\nlaunch { }         → 启动协程，不返回结果（最常用）\nasync { }          → 启动协程，返回 Deferred\nawait()            → 获取 async 的结果\nflow { emit(x) }   → 创建数据流\ncollect { }        → 收集 Flow 数据\nviewModelScope     → ViewModel 中启动协程（推荐）\ntry-catch          → 协程中的异常处理（必须加）'
             }
           ]
         }
@@ -624,46 +651,68 @@ export const phase1: Phase = {
           contents: [
             {
               type: 'text',
-              content: '## 什么是 StateFlow？\n\nStateFlow 是一种特殊的 Flow，用于管理和观察状态。它的特点：\n\n1. **总是有值**：创建时必须提供初始值\n2. **只保存最新值**：新订阅者会立即收到当前最新值\n3. **线程安全**：可以在任何线程更新和读取\n4. **自动去重**：相同的值不会重复发送'
-            },
-            {
-              type: 'text',
-              content: '## StateFlow vs MutableStateFlow\n\n| 类型 | 说明 | 使用场景 |\n|------|------|----------|\n| `MutableStateFlow` | 可修改的状态 | 在 ViewModel 内部使用 |\n| `StateFlow` | 只读状态 | 暴露给 UI 层，防止外部修改 |'
-            },
-            {
-              type: 'text',
-              content: '## 数据流向\n\n```mermaid\ngraph TD\n    A[ViewModel] --> B[MutableStateFlow私有]\n    B --> C[StateFlow公开只读]\n    C --> D[UI层观察]\n    D --> E[UI自动更新]\n    F[用户操作] --> G[调用ViewModel方法]\n    G --> B\n```'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: 'class CounterViewModel : ViewModel() {\n    // 私有：内部可修改\n    private val _count = MutableStateFlow(0)\n    // 公开：外部只读\n    val count: StateFlow<Int> = _count.asStateFlow()\n    \n    fun increment() {\n        _count.value++  // 修改状态\n    }\n    \n    fun decrement() {\n        _count.value--\n    }\n    \n    fun reset() {\n        _count.value = 0\n    }\n}'
-            },
-            {
-              type: 'text',
-              content: '## 在 Compose 中使用\n\nJetpack Compose 提供了 `collectAsState()` 来观察 StateFlow：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '@Composable\nfun CounterScreen(viewModel: CounterViewModel) {\n    // 自动订阅状态变化\n    val count by viewModel.count.collectAsState()\n    \n    Column {\n        Text("计数: $count")  // count 变化时自动重组\n        \n        Button(onClick = { viewModel.increment() }) {\n            Text("加一")\n        }\n        \n        Button(onClick = { viewModel.decrement() }) {\n            Text("减一")\n        }\n        \n        Button(onClick = { viewModel.reset() }) {\n            Text("重置")\n        }\n    }\n}'
-            },
-            {
-              type: 'text',
-              content: '## 实际应用示例：用户加载状态\n\n在实际开发中，常用 StateFlow 管理加载状态：'
-            },
-            {
-              type: 'code',
-              language: 'kotlin',
-              content: '// 定义状态\nsealed class UiState<out T> {\n    object Loading : UiState<Nothing>()\n    data class Success<T>(val data: T) : UiState<T>()\n    data class Error(val message: String) : UiState<Nothing>()\n}\n\nclass UserViewModel : ViewModel() {\n    private val _userState = MutableStateFlow<UiState<User>>(UiState.Loading)\n    val userState: StateFlow<UiState<User>> = _userState.asStateFlow()\n    \n    fun loadUser(userId: String) {\n        viewModelScope.launch {\n            _userState.value = UiState.Loading\n            \n            try {\n                val user = fetchUser(userId)\n                _userState.value = UiState.Success(user)\n            } catch (e: Exception) {\n                _userState.value = UiState.Error(e.message ?: "加载失败")\n            }\n        }\n    }\n}\n\n// 在 UI 中使用\n@Composable\nfun UserScreen(viewModel: UserViewModel) {\n    val state by viewModel.userState.collectAsState()\n    \n    when (state) {\n        is UiState.Loading -> {\n            CircularProgressIndicator()\n        }\n        is UiState.Success -> {\n            val user = (state as UiState.Success).data\n            Text("用户: ${user.name}")\n        }\n        is UiState.Error -> {\n            val error = (state as UiState.Error).message\n            Text("错误: $error", color = Color.Red)\n        }\n    }\n}'
+              content: '## ViewModel 有了数据，UI 怎么知道？\n\n上一课学了 ViewModel 保存数据，但还有一个问题：数据变化时，UI 怎么自动更新？\n\n比如用户点了"加载"按钮，ViewModel 从服务器拿到了新数据，页面怎么自动刷新？\n\n答案是 **StateFlow**——一种"可观察的状态容器"。'
             },
             {
               type: 'tip',
-              content: '**最佳实践**：\n\n1. ViewModel 内部用 `MutableStateFlow`，暴露给外部用 `StateFlow`\n2. 使用 sealed class 定义状态，清晰表达加载/成功/失败\n3. 在协程中更新状态，确保线程安全'
+              content: '**JS 开发者注意**：StateFlow 就像 React 的 `useState`。`MutableStateFlow` ≈ `setState`（可修改），`StateFlow` ≈ 组件读取的 `state`（只读）。数据变了，UI 自动更新。'
+            },
+            {
+              type: 'text',
+              content: '## StateFlow 的特点\n\n| 特点 | 说明 |\n|------|------|\n| 总有值 | 创建时必须提供初始值（不会是 null） |\n| 只保存最新值 | 新订阅者立即收到当前值 |\n| 自动去重 | 相同的值不会重复触发 UI 更新 |\n| 线程安全 | 可在任何线程读写 |'
+            },
+            {
+              type: 'text',
+              content: '## 核心模式：私有可变 + 公开只读\n\n```mermaid\ngraph LR\n    A[用户操作] --> B[调用 ViewModel 方法]\n    B --> C[修改 MutableStateFlow]\n    C --> D[StateFlow 通知 UI]\n    D --> E[UI 自动更新]\n```\n\nViewModel 内部用 `MutableStateFlow`（可改），对外暴露 `StateFlow`（只读），防止 UI 层直接改数据：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: 'class CounterViewModel : ViewModel() {\n    // 私有：ViewModel 内部可以修改\n    private val _count = MutableStateFlow(0)\n    // 公开：UI 层只能读取，不能修改\n    val count: StateFlow<Int> = _count.asStateFlow()\n    \n    fun increment() { _count.value++ }\n    fun decrement() { _count.value-- }\n    fun reset() { _count.value = 0 }\n}'
+            },
+            {
+              type: 'text',
+              content: '## 在 Compose 中观察状态\n\n`collectAsState()` 让 Compose 自动订阅 StateFlow，数据变了 UI 自动刷新：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '@Composable\nfun CounterScreen(viewModel: CounterViewModel) {\n    val count by viewModel.count.collectAsState()  // 自动订阅\n    \n    Column {\n        Text("计数: $count")  // count 变化时自动更新\n        Button(onClick = { viewModel.increment() }) { Text("加一") }\n        Button(onClick = { viewModel.reset() }) { Text("重置") }\n    }\n}'
+            },
+            {
+              type: 'text',
+              content: '## 实战：用 sealed class 管理加载状态\n\n真实项目中，一个页面通常有三种状态：加载中、成功、失败。用 sealed class + StateFlow 优雅处理：'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// 定义三种状态\nsealed class UiState<out T> {\n    object Loading : UiState<Nothing>()\n    data class Success<T>(val data: T) : UiState<T>()\n    data class Error(val message: String) : UiState<Nothing>()\n}\n\n// ViewModel：管理加载状态\nclass UserViewModel : ViewModel() {\n    private val _state = MutableStateFlow<UiState<User>>(UiState.Loading)\n    val state: StateFlow<UiState<User>> = _state.asStateFlow()\n    \n    fun loadUser(userId: String) {\n        viewModelScope.launch {\n            _state.value = UiState.Loading\n            try {\n                val user = fetchUser(userId)\n                _state.value = UiState.Success(user)\n            } catch (e: Exception) {\n                _state.value = UiState.Error(e.message ?: "加载失败")\n            }\n        }\n    }\n}\n\n// UI：根据状态显示不同内容\n@Composable\nfun UserScreen(viewModel: UserViewModel) {\n    val state by viewModel.state.collectAsState()\n    \n    when (state) {\n        is UiState.Loading -> CircularProgressIndicator()\n        is UiState.Success -> Text("用户: ${(state as UiState.Success).data.name}")\n        is UiState.Error -> Text("错误: ${(state as UiState.Error).message}", color = Color.Red)\n    }\n}'
+            },
+            {
+              type: 'text',
+              content: '## 常见错误对比'
+            },
+            {
+              type: 'code',
+              language: 'kotlin',
+              content: '// ❌ 错误：把 MutableStateFlow 直接暴露给 UI\nclass BadViewModel : ViewModel() {\n    val count = MutableStateFlow(0)  // UI 可以随意修改！\n}\n\n// ✅ 正确：私有可变 + 公开只读\nclass GoodViewModel : ViewModel() {\n    private val _count = MutableStateFlow(0)\n    val count: StateFlow<Int> = _count.asStateFlow()\n    fun increment() { _count.value++ }\n}'
             },
             {
               type: 'warning',
-              content: '**注意**：不要直接在 Composable 函数中修改 StateFlow，应该通过调用 ViewModel 的方法来修改状态。'
+              content: '**不要把 MutableStateFlow 暴露给 UI 层！** 始终用 `_state`（私有可变）+ `state`（公开只读）的模式，保证数据流向是单向的：ViewModel → UI。'
+            },
+            {
+              type: 'tip',
+              content: '**最佳实践**：ViewModel 内部 `MutableStateFlow` + 暴露 `StateFlow`；用 sealed class 定义 Loading/Success/Error 状态；在 Compose 中用 `collectAsState()` 观察。'
+            },
+            {
+              type: 'text',
+              content: '## 速查表\n\n忘记了随时回来看：'
+            },
+            {
+              type: 'code',
+              language: 'text',
+              content: 'MutableStateFlow(初始值)   → 可修改的状态（ViewModel 内部用）\n.asStateFlow()             → 转为只读 StateFlow（暴露给 UI）\n_state.value = x           → 更新状态\ncollectAsState()           → 在 Compose 中观察状态变化\nsealed class UiState       → 定义 Loading / Success / Error\nwhen (state) { ... }       → 根据状态显示不同 UI'
             }
           ]
         }
