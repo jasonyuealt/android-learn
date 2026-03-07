@@ -6,13 +6,13 @@
 
 ```bash
 # 安装依赖
-yarn install
+npm install
 
 # 启动开发服务器
-yarn dev
+npm run dev
 
 # 构建生产版本
-yarn build
+npm run build
 ```
 
 ## 📚 项目概述
@@ -132,7 +132,7 @@ yarn build
 
 ### AI 服务
 - **测验生成**: Cerebras API (qwen-3-32b)
-- **代码运行**: Kotlin Playground API
+- **代码运行**: Kotlin Playground API（内嵌编辑器，课程页导航栏入口）
 
 ---
 
@@ -145,32 +145,77 @@ android-learn/
 │   │   ├── AI/                       # AI 功能模块
 │   │   │   ├── shared/              # 共享代码
 │   │   │   │   ├── hooks/           # 共享 Hooks
-│   │   │   │   │   └── useTypingEffect.ts  # 打字机效果
+│   │   │   │   │   ├── useTypingEffect.ts  # 打字机效果
+│   │   │   │   │   └── useAutoScroll.ts    # 自动滚动
 │   │   │   │   └── utils/           # 共享工具
 │   │   │   │       └── markdown.ts  # Markdown 渲染
 │   │   │   ├── ContentAssistant/    # 内容分析助手（流程图/代码）
+│   │   │   │   ├── components/      # 子组件
+│   │   │   │   │   ├── ChatArea.tsx
+│   │   │   │   │   └── ContentPreview.tsx
+│   │   │   │   ├── hooks/
+│   │   │   │   │   ├── useAIChat.ts
+│   │   │   │   │   └── useMermaidRender.ts
+│   │   │   │   ├── config.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── index.tsx
 │   │   │   └── TextAssistant/       # 文本分析助手（选中触发）
+│   │   │       ├── hooks/
+│   │   │       │   └── useTextSelection.ts
+│   │   │       └── index.tsx
+│   │   ├── Auth/                     # 认证相关组件
+│   │   │   ├── AuthDecorationPanel.tsx  # 登录/注册装饰面板
+│   │   │   ├── AuthLayout.tsx           # 认证页面布局
+│   │   │   ├── FormInput.tsx            # 表单输入框
+│   │   │   └── PasswordInput.tsx        # 密码输入框
+│   │   ├── Quiz/                     # AI 小测验模块
+│   │   │   ├── QuestionOptions/     # 题型组件
+│   │   │   │   ├── FillBlankInput.tsx       # 填空题
+│   │   │   │   ├── MultipleChoiceOptions.tsx # 多选题
+│   │   │   │   └── SingleChoiceOptions.tsx   # 单选题
+│   │   │   ├── hooks/
+│   │   │   │   └── useQuizHistory.ts    # 测验历史
+│   │   │   ├── QuizHeader.tsx
+│   │   │   ├── QuizIdle.tsx
+│   │   │   ├── QuizQuestion.tsx
+│   │   │   ├── QuizResult.tsx
+│   │   │   ├── ValidateButton.tsx
+│   │   │   └── index.tsx
 │   │   ├── BackgroundDecoration.tsx  # 背景装饰
 │   │   ├── BottomNav.tsx             # 底部导航
 │   │   ├── CodeBlock.tsx             # 代码块显示
+│   │   ├── ConfirmDialog.tsx         # 确认对话框
 │   │   ├── Icon.tsx                  # Lucide 图标映射组件
+│   │   ├── KotlinEditor.tsx          # Kotlin 在线编辑器
 │   │   ├── Logo.tsx                  # Logo 组件
 │   │   ├── Navbar.tsx                # 顶部导航栏
 │   │   ├── PathCard.tsx              # 学习路径卡片
 │   │   ├── ProjectCard.tsx           # 项目卡片
-│   │   ├── Quiz.tsx                  # AI 小测验（云端存储）
 │   │   └── ThemeToggle.tsx           # 主题切换按钮
 │   ├── pages/               # 页面组件
 │   │   ├── HomePage.tsx              # 首页
 │   │   ├── LearnPage.tsx             # 学习列表页
 │   │   ├── LessonPage.tsx            # 课程详情页
+│   │   ├── LoginPage.tsx             # 登录页
+│   │   ├── RegisterPage.tsx          # 注册页
 │   │   ├── ProjectsPage.tsx          # 项目列表页
 │   │   ├── ProjectDetailPage.tsx     # 项目详情页
 │   │   ├── ResourcesPage.tsx         # 资源中心页
 │   │   └── ProfilePage.tsx           # 个人中心
 │   ├── data/                # 数据文件
-│   │   ├── courses.ts                # 课程内容数据
-│   │   └── projects.ts               # 项目数据
+│   │   ├── courses/                  # 课程内容（按阶段拆分）
+│   │   │   ├── index.ts              # 课程数据入口
+│   │   │   ├── types.ts              # 课程类型定义
+│   │   │   ├── phase1-basics.ts      # 第一阶段：基础入门
+│   │   │   ├── phase2-components.ts  # 第二阶段：核心组件
+│   │   │   ├── phase3-data.ts        # 第三阶段：数据与网络
+│   │   │   ├── phase4-architecture.ts # 第四阶段：架构进阶
+│   │   │   └── phase5-projects.ts    # 第五阶段：实战项目
+│   │   └── projects/                 # 项目数据
+│   │       ├── index.ts              # 项目数据入口
+│   │       ├── types.ts              # 项目类型定义
+│   │       ├── basic-projects.ts     # 基础项目
+│   │       └── advanced-projects.ts  # 进阶项目
 │   ├── blocs/               # 状态管理
 │   │   ├── authBloc.ts               # 用户认证管理
 │   │   ├── themeBloc.ts              # 主题状态管理
@@ -179,14 +224,20 @@ android-learn/
 │   ├── services/            # 服务层
 │   │   ├── aiService.ts              # AI API 调用服务（Cerebras）
 │   │   └── supabaseService.ts        # Supabase 数据库服务
+│   ├── lib/
+│   │   └── supabase.ts               # Supabase 客户端初始化
 │   ├── types/               # 类型定义
 │   │   └── index.ts                  # 类型/类定义
 │   ├── App.tsx              # 主应用组件
 │   ├── main.tsx             # 入口文件
 │   └── index.css            # 全局样式
+├── api/
+│   └── ai-chat.ts           # AI API 代理（Vercel Serverless Function）
+├── supabase/
+│   ├── init.sql              # 数据库初始化脚本
+│   └── add-delete-policies.sql # DELETE 权限修复
 ├── public/
 │   └── vite.svg             # 网站图标
-├── prototype.html           # 原型设计文件
 ├── index.html               # HTML 入口
 ├── package.json             # 依赖配置
 ├── tailwind.config.js       # Tailwind 配置
@@ -403,7 +454,7 @@ android-learn/
 
 - [ ] 代码沙盒/在线练习
 - [x] ~~用户认证系统（登录注册）~~ ✅ 已完成
-- [ ] 云端数据同步
+- [x] ~~云端数据同步~~ ✅ 已完成（Supabase 云端存储）
 - [ ] 搜索功能
 - [ ] 笔记功能
 
